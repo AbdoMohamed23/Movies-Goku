@@ -31,9 +31,9 @@ const Details = () => {
   }, [id]);
 
   return (
-    <div className="text-white p-6">
+    <div className="text-white py-6">
       {movies && movies.map((movie) => (
-        <div key={movie.id} className="bg-card grid grid-cols-1 md:grid-cols-2 justify-between gap-8 rounded-2xl shadow-md p-4 mb-4">
+        <div key={movie.id} className="bg-card grid grid-cols-1 md:grid-cols-2 justify-between gap-8 rounded-2xl shadow-md p-4 mb-4 mx-6">
           <div className='justify-center flex'>
             {trailerKey ? (
               <iframe
