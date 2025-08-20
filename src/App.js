@@ -1,17 +1,25 @@
 import { Route, Routes } from 'react-router-dom';
 import './App.css';
-import Search from './components/Search';
-import App2 from './App2';
+import Footer from './components/Footer';
+import Header from './components/Header';
+import CardList from './components/CardList';
+import Details from './components/Details';
+import ScrollToTop from './components/ScrollToTop';
+import PageNotFound from './components/PageNotFound';
 
 function App() {
-  return (
-    <>
-      <Routes>
-        <Route path="/*" element={<App2 />} />
-        <Route path="/search" element={<Search />} />
-      </Routes>
-    </>
-  );
+    return (
+        <>
+            <ScrollToTop />
+            <Header />
+            <Routes>
+                <Route path="/" element={<CardList />} />
+                <Route path="/details/:id" element={<Details />} />
+                <Route path="*" element={<PageNotFound />} />
+            </Routes>
+            <Footer />
+        </>
+    );
 }
 
 export default App;

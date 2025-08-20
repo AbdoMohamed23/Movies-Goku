@@ -27,8 +27,8 @@ const CardList = () => {
     }, []);
 
     return (
-        <section className="flex justify-center items-center p-6">
-            <div className="w-full md:px-6 mx-auto grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-8 gap-6 ">
+        <section className="p-6">
+            <div className="w-full md:px-6 mx-auto grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-8 gap-6">
                 <Card movies={movies} />
             </div>
         </section>

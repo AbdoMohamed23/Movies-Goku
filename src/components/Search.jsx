@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FaSearch } from "react-icons/fa";
 import { IoClose } from "react-icons/io5";
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const API_KEY = "52ef927bbeb21980cd91386a29403c78";
 
@@ -40,10 +40,10 @@ const Search = ({ movies }) => {
         <h2 className="text-white text-2xl font-bold mb-6">{results.length} results</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8 pb-10">
           {results.map(movie => (
-            <div
+            <Link
+              to={`/details/${movie.id}`}
               key={movie.id}
               className="bg-card rounded-lg overflow-hidden cursor-pointer"
-              onClick={() => navigate(`/details/${movie.id}`)}
             >
               <img src={`https://image.tmdb.org/t/p/w300/${movie.poster_path}`} alt={movie.title} className="w-full h-64 object-cover" />
               <div className="p-3">
@@ -53,8 +53,8 @@ const Search = ({ movies }) => {
                   <span>⭐ {movie.vote_average?.toFixed(1)}</span>
                 </div>
               </div>
-            </div>
-          ))}
+            </Link>
+          ))}{/* map */}
         </div>
       </div>
     </div>

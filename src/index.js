@@ -1,13 +1,17 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import Search from './components/Search.jsx';
 import App from './App';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
     <BrowserRouter>
-      <App className="bg-background"/>
+    <Routes>
+      <Route path="/*" element={<App />} />
+      <Route path="/search" element={<Search />} />
+    </Routes>
     </BrowserRouter>
   </React.StrictMode>
 );

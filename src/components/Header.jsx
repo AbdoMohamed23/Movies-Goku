@@ -9,7 +9,7 @@ const Header = () => {
             <div className='w-10/12 md:w-[1400px] mx-auto'>
                 <div className="flex justify-between items-center">
                     <div className="flex justify-end items-center gap-4">
-                        <Link to="/"><img src={Logo} className="w-28" alt='...' /></Link>
+                        <Link to="/"><img src={Logo} className="w-28" alt='movies' /></Link>
                         <nav className='hidden md:block ps-6'>
                             <ul className='flex gap-4 text-xl text-white'>
                                 <li><Link to={`/`}>Home</Link></li>
