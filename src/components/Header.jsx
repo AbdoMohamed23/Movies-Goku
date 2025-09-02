@@ -6,7 +6,7 @@ import { FaSearch } from "react-icons/fa";
 const Header = () => {
     return (
         <header className="py-3 text-white">
-            <div className='w-10/12 md:w-[1400px] mx-auto'>
+            <div className='w-10/12  mx-auto'>
                 <div className="flex justify-between items-center">
                     <div className="flex justify-end items-center gap-4">
                         <Link to="/"><img src={Logo} className="w-28" alt='movies' /></Link>

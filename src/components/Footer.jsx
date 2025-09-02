@@ -73,25 +73,25 @@ const Footer = () => {
                         <Link to="/"><img src={Logo} className="w-28 " alt='movies' /></Link>
                     </div>{/* logo */}
 
-                    <div className='col-span-1'>
+                    <div className='col-span-1 w-full'>
                         <h3 className='text-H1 text-lg mb-4'>About us</h3>
                         <div className='flex gap-5'>
-                            <ul className='flex flex-col text-sm gap-4 text-white'>
+                            <ul className='flex flex-col text-sm gap-4 text-white w-full'>
                                 <li><Link to={`/`}>Home</Link></li>
                                 <li><Link to={`/`}>Genre</Link></li>
                                 <li><Link to={`/`}>Country</Link></li>
                             </ul>
-                            <ul className='flex flex-col text-sm gap-4 text-white'>
+                            <ul className='flex flex-col text-sm gap-4 text-white w-full'>
                                 <li><Link to={`/`}>Movies</Link></li>
                                 <li><Link to={`/`}>TV Series</Link></li>
                                 <li><Link to={`/`}>Top IMDb</Link></li>
                             </ul>
                         </div>
                     </div>{/* link-1 */}
-                    <div className='col-span-1'>
+                    <div className='col-span-1 w-full'>
                         <h3 className='text-H1 text-lg mb-4'>Contact us</h3>
-                        <div className='flex gap-5'>
-                            <ul className='flex flex-col text-sm gap-2 text-gray-400'>
+                        <div className='flex gap-5 w-full'>
+                            <ul className='flex flex-col text-sm gap-2 text-gray-400 w-full'>
                                 <li className='bg-white rounded-full w-full px-4 py-2 hover:bg-orange-600'><Link className='flex gap-2 items-center' to={`/`}>Join Group Telegram</Link></li>
                                 <li className='bg-white rounded-full w-full px-4 py-2 hover:bg-orange-600'><Link className='flex gap-2 items-center' to={`/`}>Join Group Reddit</Link></li>
                                 <li className='bg-white rounded-full w-full px-4 py-2 hover:bg-orange-600'><Link className='flex gap-2 items-center' to={`/`}>Join Twitter</Link></li>
