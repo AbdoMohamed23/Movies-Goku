@@ -7,9 +7,9 @@ module.exports = {
     extend: {
       colors: {
         H1: '#ffffff',
-        color: '#14171A',
-        card: '#1F232C',
-        background: '#181B22',
+        color: '#0b0d13',
+        card: '#141721',
+        background: '#0a0c11',
       },
     },
   },
