@@ -4,12 +4,15 @@
 
 html {
     scroll-behavior: smooth;
+    overflow-x: hidden;
 }
 
 body {
     font-family: "Markazi Text", Helvetica, Arial, sans-serif;
     background-color: #0a0c11;
     color: #ffffff;
+    overflow-x: hidden;
+    overscroll-behavior-y: auto;
 }
 
 /* Custom Scrollbars */
