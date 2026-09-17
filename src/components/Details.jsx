@@ -16,43 +16,31 @@ import {
 
 const API_KEY = '52ef927bbeb21980cd91386a29403c78';
 
-// قائمة السيرفرات النشطة والمختبرة بنجاح
+// قائمة السيرفرات النشطة والنظيفة
 const SERVERS = [
   { 
     id: 'vidlink', 
-    name: 'VidLink HD', 
+    name: 'VidLink', 
     movieUrl: (id) => `https://vidlink.pro/movie/${id}?autoplay=false&primaryColor=ea580c`,
     tvUrl: (id, s, e) => `https://vidlink.pro/tv/${id}/${s}/${e}?autoplay=false&primaryColor=ea580c`
   },
   { 
     id: 'vidsrc_me', 
-    name: 'Filemoon (VidSrc Me)', 
+    name: 'VidSrc Me', 
     movieUrl: (id) => `https://vidsrc.me/embed/movie?tmdb=${id}`,
     tvUrl: (id, s, e) => `https://vidsrc.me/embed/tv?tmdb=${id}&sea=${s}&epi=${e}`
   },
   { 
     id: 'vidsrc_to', 
-    name: 'Upnshare (VidSrc To)', 
+    name: 'VidSrc To', 
     movieUrl: (id) => `https://vidsrc.to/embed/movie/${id}`,
     tvUrl: (id, s, e) => `https://vidsrc.to/embed/tv/${id}/${s}/${e}`
   },
   { 
     id: 'autoembed', 
-    name: 'Forafile (AutoEmbed)', 
+    name: 'AutoEmbed', 
     movieUrl: (id) => `https://autoembed.co/movie/tmdb/${id}`,
     tvUrl: (id, s, e) => `https://autoembed.co/tv/tmdb/${id}/${s}/${e}`
-  },
-  { 
-    id: 'multiembed', 
-    name: 'Uqload (MultiEmbed)', 
-    movieUrl: (id) => `https://multiembed.mov/?video_id=${id}&tmdb=1`,
-    tvUrl: (id, s, e) => `https://multiembed.mov/?video_id=${id}&tmdb=1&s=${s}&e=${e}`
-  },
-  { 
-    id: 'twoembed', 
-    name: 'Save Files (2Embed)', 
-    movieUrl: (id) => `https://www.2embed.cc/embed/${id}`,
-    tvUrl: (id, s, e) => `https://www.2embed.cc/embedtv/${id}&s=${s}&e=${e}`
   },
 ];
 
