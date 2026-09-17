@@ -15,7 +15,6 @@ import {
     FaMagic, 
     FaPalette,
     FaArrowRight,
-    FaUser,
     FaChevronLeft,
     FaChevronRight,
     FaHeart,
@@ -106,14 +105,6 @@ const CardList = () => {
     const actorIdParam = searchParams.get("actor");
     const actorNameParam = searchParams.get("name") || "Actor";
     const currentPage = Number(searchParams.get("page")) || 1;
-    const [favVersion, setFavVersion] = useState(0);
-
-    // Listen for favorite events
-    useEffect(() => {
-        const onFavs = () => setFavVersion((v) => v + 1);
-        window.addEventListener('apex_favorites_updated', onFavs);
-        return () => window.removeEventListener('apex_favorites_updated', onFavs);
-    }, []);
 
     // Homepage sections data
     const [tvSeries, setTvSeries] = useState([]);
@@ -132,6 +123,29 @@ const CardList = () => {
         return CATEGORIES.find((cat) => cat.id === categoryParam) || CATEGORIES[1];
     }, [categoryParam]);
 
+    // Live update ONLY for the Favorites page when items are toggled (without scrolling or reloading)
+    useEffect(() => {
+        if (categoryParam !== 'favorites') return;
+
+        const updateFavoritesView = () => {
+            const allFavs = getFavorites();
+            const perPage = 21;
+            const total = allFavs.length;
+            const calculatedPages = Math.max(1, Math.ceil(total / perPage));
+            const safePage = Math.min(currentPage, calculatedPages);
+            const offset = (safePage - 1) * perPage;
+            const pageItems = allFavs.slice(offset, offset + perPage);
+
+            setFilteredItems(pageItems);
+            setTotalResults(total);
+            setTotalPages(calculatedPages);
+        };
+
+        window.addEventListener('apex_favorites_updated', updateFavoritesView);
+        return () => window.removeEventListener('apex_favorites_updated', updateFavoritesView);
+    }, [categoryParam, currentPage]);
+
+    // Main fetch content effect on navigation/page changes
     useEffect(() => {
         const fetchContent = async () => {
             setLoading(true);
@@ -219,11 +233,7 @@ const CardList = () => {
 
         fetchContent();
         window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, [categoryParam, actorIdParam, currentPage, activeCategoryObj, favVersion]);
-
-    const handleCategorySelect = (catId) => {
-        setSearchParams({ cat: catId, page: '1' });
-    };
+    }, [categoryParam, actorIdParam, currentPage, activeCategoryObj]);
 
     const handlePageChange = (newPage) => {
         if (newPage >= 1 && newPage <= totalPages) {
@@ -254,60 +264,7 @@ const CardList = () => {
     };
 
     return (
-        <main className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-10">
-            
-            {/* Desktop Category Filter Pills / Tabs */}
-            <div className="hidden sm:flex sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-gray-800/80">
-                <div className="flex items-center gap-2">
-                    <span className="w-1.5 sm:w-2 h-5 sm:h-6 bg-gradient-to-b from-orange-500 to-amber-500 rounded-full inline-block"></span>
-                    <h2 className="text-lg sm:text-2xl font-bold text-white tracking-wide flex items-center gap-2">
-                        {actorIdParam ? (
-                            <>
-                                <FaUser className="text-orange-400 text-base" />
-                                <span>Cast: {actorNameParam}</span>
-                            </>
-                        ) : isSingleCategory ? (
-                            <>
-                                <span>{activeCategoryObj.title}</span>
-                                <span className="text-sm">{activeCategoryObj.icon}</span>
-                            </>
-                        ) : (
-                            <span>Trending Cinema</span>
-                        )}
-                    </h2>
-                </div>
-
-                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none no-scrollbar">
-                    <button
-                        onClick={() => setSearchParams({})}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer ${
-                            !isSingleCategory
-                                ? "bg-gradient-to-r from-orange-600 to-amber-600 text-white shadow-md shadow-orange-600/30 ring-1 ring-orange-400/50 scale-105"
-                                : "bg-[#141721] text-gray-300 hover:bg-gray-800 hover:text-white border border-gray-800"
-                        }`}
-                    >
-                        <span>All Sections</span>
-                    </button>
-
-                    {CATEGORIES.map((cat) => {
-                        const isActive = categoryParam === cat.id && !actorIdParam;
-                        return (
-                            <button
-                                key={cat.id}
-                                onClick={() => handleCategorySelect(cat.id)}
-                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer ${
-                                    isActive
-                                        ? "bg-gradient-to-r from-orange-600 to-amber-600 text-white shadow-md shadow-orange-600/30 ring-1 ring-orange-400/50 scale-105"
-                                        : "bg-[#141721] text-gray-300 hover:bg-gray-800 hover:text-white border border-gray-800"
-                                }`}
-                            >
-                                <span className="text-[11px]">{cat.icon}</span>
-                                <span>{cat.title}</span>
-                            </button>
-                        );
-                    })}
-                </div>
-            </div>
+        <main className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-8">
 
             {loading ? (
                 <div className="min-h-[50vh] flex flex-col items-center justify-center">

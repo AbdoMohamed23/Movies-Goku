@@ -61,10 +61,10 @@ const Card = ({ movies }) => {
                     toggleFavorite(item);
                   }}
                   title={fav ? "Remove from favorites" : "Add to favorites"}
-                  className={`p-1.5 rounded-full backdrop-blur-md transition-all duration-200 ${
+                  className={`p-1.5 rounded-full backdrop-blur-md transition-colors duration-150 cursor-pointer ${
                     fav
-                      ? 'bg-red-600/90 text-white shadow-md shadow-red-600/40 scale-110'
-                      : 'bg-black/60 text-gray-300 hover:text-red-400 hover:bg-black/80 hover:scale-110'
+                      ? 'bg-red-600 text-white shadow-md shadow-red-600/40'
+                      : 'bg-black/60 text-gray-300 hover:text-red-400 hover:bg-black/80'
                   }`}
                 >
                   {fav ? <FaHeart className="text-[11px] sm:text-xs" /> : <FaRegHeart className="text-[11px] sm:text-xs" />}

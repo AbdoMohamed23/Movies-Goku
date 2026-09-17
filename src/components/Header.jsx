@@ -125,14 +125,11 @@ const Header = () => {
                             {/* Universal Menu Button (Visible on Desktop, Tablet & Mobile) */}
                             <button
                                 onClick={() => setMobileMenuOpen(true)}
-                                className="flex items-center gap-2 px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-200 hover:text-white border border-gray-700/80 transition-all shadow-sm group cursor-pointer"
+                                className="p-2.5 rounded-xl bg-gray-800 text-gray-200 hover:text-white hover:bg-gray-700 border border-gray-700/80 flex items-center justify-center transition-colors shadow-sm cursor-pointer group"
                                 aria-label="Open full menu"
-                                title="All Categories & Menu"
+                                title="Menu"
                             >
                                 <FaBars className="text-base sm:text-lg group-hover:text-orange-400 transition-colors" />
-                                <span className="hidden sm:inline text-xs font-bold text-gray-300 group-hover:text-white transition-colors">
-                                    Menu
-                                </span>
                             </button>
                         </div>
                     </div>

@@ -380,9 +380,9 @@ const Details = () => {
                 <button
                   onClick={handleToggleFav}
                   title={favStatus ? "Remove from Favorites" : "Add to Favorites"}
-                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl font-semibold text-xs sm:text-sm transition-all duration-200 cursor-pointer shadow-md ${
+                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl font-semibold text-xs sm:text-sm transition-colors duration-150 cursor-pointer shadow-md ${
                     favStatus
-                      ? 'bg-red-600 text-white shadow-red-600/40 ring-1 ring-red-400/60 scale-105'
+                      ? 'bg-red-600 text-white shadow-red-600/40 ring-1 ring-red-400/60'
                       : 'bg-gray-800/80 text-gray-300 hover:text-red-400 hover:bg-gray-700 border border-gray-700/50'
                   }`}
                 >
