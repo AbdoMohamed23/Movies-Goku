@@ -18,9 +18,13 @@ import {
     FaChevronLeft,
     FaChevronRight,
     FaHeart,
-    FaCompass
+    FaCompass,
+    FaHistory,
+    FaPlay,
+    FaTimes
 } from "react-icons/fa";
 import { getFavorites } from "../utils/favorites";
+import { getWatchHistory, removeWatchHistoryItem } from "../utils/history";
 
 const API_KEY = "52ef927bbeb21980cd91386a29403c78";
 
@@ -122,6 +126,16 @@ const CardList = () => {
     const activeCategoryObj = useMemo(() => {
         return CATEGORIES.find((cat) => cat.id === categoryParam) || CATEGORIES[1];
     }, [categoryParam]);
+
+    // Continue Watching history state
+    const [historyList, setHistoryList] = useState(() => getWatchHistory());
+
+    // Listen to history updates
+    useEffect(() => {
+        const updateHist = () => setHistoryList(getWatchHistory());
+        window.addEventListener('apex_history_updated', updateHist);
+        return () => window.removeEventListener('apex_history_updated', updateHist);
+    }, []);
 
     // Live update ONLY for the Favorites page when items are toggled (without scrolling or reloading)
     useEffect(() => {
@@ -377,9 +391,95 @@ const CardList = () => {
                     )}
                 </div>
             ) : (
-                /* Multi-Section Homepage: 21 TV Series + 21 Movies + 21 Animation */
+                /* Multi-Section Homepage: Continue Watching + 21 TV Series + 21 Movies + 21 Animation */
                 <div className="space-y-12">
                     
+                    {/* Continue Watching Section (If history exists) */}
+                    {historyList && historyList.length > 0 && (
+                        <section className="space-y-4 p-4 sm:p-5 bg-gradient-to-r from-[#121520] via-[#10131a] to-[#121520] rounded-2xl border border-orange-500/20 shadow-xl">
+                            <div className="flex items-center justify-between pb-2 border-b border-gray-800/80">
+                                <div className="flex items-center gap-2">
+                                    <span className="w-1.5 sm:w-2 h-5 sm:h-6 bg-gradient-to-b from-orange-500 to-amber-500 rounded-full inline-block"></span>
+                                    <h2 className="text-lg sm:text-xl font-bold text-white tracking-wide flex items-center gap-2">
+                                        <FaHistory className="text-orange-400 text-base" />
+                                        <span>Continue Watching</span>
+                                    </h2>
+                                </div>
+                                <span className="text-xs text-gray-400 font-medium">
+                                    {historyList.length} saved
+                                </span>
+                            </div>
+
+                            {/* Horizontal scrollable Continue Watching cards */}
+                            <div className="flex items-center gap-3 sm:gap-4 overflow-x-auto pb-2 scrollbar-none no-scrollbar">
+                                {historyList.map((item) => {
+                                    const title = item.title || item.name || 'Untitled';
+                                    const isTv = item.media_type === 'tv';
+                                    const posterUrl = item.poster_path
+                                        ? `https://image.tmdb.org/t/p/w300/${item.poster_path}`
+                                        : item.backdrop_path
+                                        ? `https://image.tmdb.org/t/p/w300/${item.backdrop_path}`
+                                        : 'https://via.placeholder.com/300x450?text=No+Poster';
+
+                                    return (
+                                        <div
+                                            key={`history-${item.id}`}
+                                            className="relative flex-shrink-0 w-32 sm:w-40 bg-[#151822] rounded-xl overflow-hidden border border-gray-800 hover:border-orange-500/50 group shadow-md hover:shadow-xl transition-all duration-200"
+                                        >
+                                            <Link
+                                                to={`/details/${item.id}${isTv ? '?type=tv' : ''}`}
+                                                className="block"
+                                            >
+                                                <div className="relative aspect-[2/3] overflow-hidden bg-gray-900">
+                                                    <img
+                                                        src={posterUrl}
+                                                        alt={title}
+                                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                                        loading="lazy"
+                                                    />
+                                                    <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 flex items-center justify-center transition-colors">
+                                                        <div className="w-9 h-9 rounded-full bg-orange-600/90 text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                                                            <FaPlay className="ml-0.5 text-xs" />
+                                                        </div>
+                                                    </div>
+
+                                                    {/* TV Season/Ep Badge */}
+                                                    <div className="absolute top-1.5 left-1.5 z-10">
+                                                        <span className="bg-orange-600 text-[9px] font-bold text-white px-1.5 py-0.5 rounded shadow">
+                                                            {isTv ? `S${item.season} E${item.episode}` : 'Movie'}
+                                                        </span>
+                                                    </div>
+                                                </div>
+
+                                                <div className="p-2 space-y-1">
+                                                    <h3 className="text-white text-xs font-semibold truncate group-hover:text-orange-400 transition-colors">
+                                                        {title}
+                                                    </h3>
+                                                    <div className="w-full bg-gray-800 h-1 rounded-full overflow-hidden">
+                                                        <div className="bg-gradient-to-r from-orange-500 to-amber-500 h-full w-2/3 rounded-full"></div>
+                                                    </div>
+                                                </div>
+                                            </Link>
+
+                                            {/* Remove from history button */}
+                                            <button
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    removeWatchHistoryItem(item.id);
+                                                }}
+                                                title="Remove from history"
+                                                className="absolute top-1.5 right-1.5 p-1 rounded-full bg-black/70 text-gray-400 hover:text-white hover:bg-red-600 transition-colors z-20 cursor-pointer"
+                                            >
+                                                <FaTimes className="text-[9px]" />
+                                            </button>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </section>
+                    )}
+
                     {/* Section 1: 21 TV Series */}
                     <section className="space-y-4">
                         <div className="flex items-center justify-between pb-2 border-b border-gray-800/60">

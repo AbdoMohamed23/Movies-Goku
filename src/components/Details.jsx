@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import { Link, useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { 
@@ -13,9 +13,18 @@ import {
   FaTv,
   FaLayerGroup,
   FaHeart,
-  FaRegHeart
+  FaRegHeart,
+  FaExpand,
+  FaCompress,
+  FaVolumeUp,
+  FaTimes,
+  FaDesktop,
+  FaMobileAlt,
+  FaHeadphones,
+  FaSlidersH
 } from 'react-icons/fa';
 import { isFavorite, toggleFavorite } from '../utils/favorites';
+import { saveWatchHistoryItem } from '../utils/history';
 
 const API_KEY = '52ef927bbeb21980cd91386a29403c78';
 
@@ -84,6 +93,9 @@ const Details = () => {
   const [playerKey, setPlayerKey] = useState(0);
   const [loading, setLoading] = useState(true);
   const [favStatus, setFavStatus] = useState(() => isFavorite(id));
+  const [theaterMode, setTheaterMode] = useState(false);
+  const [showAudioModal, setShowAudioModal] = useState(false);
+  const playerContainerRef = useRef(null);
 
   // Sync favorite status
   useEffect(() => {
@@ -91,6 +103,41 @@ const Details = () => {
     window.addEventListener('apex_favorites_updated', updateFav);
     return () => window.removeEventListener('apex_favorites_updated', updateFav);
   }, [id]);
+
+  // Handle Cinema / Theater Mode toggle with auto-rotate on mobile
+  const toggleCinemaMode = async () => {
+    const nextMode = !theaterMode;
+    setTheaterMode(nextMode);
+
+    const isMobile = typeof window !== 'undefined' && (window.innerWidth <= 768 || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent));
+
+    if (nextMode) {
+      if (isMobile) {
+        try {
+          const elem = playerContainerRef.current || document.documentElement;
+          if (elem.requestFullscreen) {
+            await elem.requestFullscreen();
+          } else if (elem.webkitRequestFullscreen) {
+            await elem.webkitRequestFullscreen();
+          }
+          if (window.screen?.orientation?.lock) {
+            await window.screen.orientation.lock('landscape');
+          }
+        } catch (err) {
+          console.log('Fullscreen/orientation lock skipped:', err);
+        }
+      }
+    } else {
+      if (document.fullscreenElement) {
+        try {
+          await document.exitFullscreen();
+          if (window.screen?.orientation?.unlock) {
+            window.screen.orientation.unlock();
+          }
+        } catch (e) {}
+      }
+    }
+  };
 
   const handleToggleFav = () => {
     if (!itemData) return;
@@ -116,21 +163,47 @@ const Details = () => {
     setPlayerKey((k) => k + 1);
   };
 
-  // Save season progress
+  // Save season progress & watch history
   const handleSeasonChange = (seasonNumber) => {
     setSelectedSeason(seasonNumber);
     setSelectedEpisode(1);
     try {
       localStorage.setItem(`apex_progress_${id}`, JSON.stringify({ season: seasonNumber, episode: 1 }));
+      if (itemData) {
+        saveWatchHistoryItem({
+          id: itemData.id,
+          title: itemData.title || itemData.name,
+          name: itemData.name || itemData.title,
+          poster_path: itemData.poster_path,
+          backdrop_path: itemData.backdrop_path,
+          vote_average: itemData.vote_average,
+          media_type: 'tv',
+          season: seasonNumber,
+          episode: 1
+        });
+      }
     } catch (e) {}
     setPlayerKey((k) => k + 1);
   };
 
-  // Save episode progress
+  // Save episode progress & watch history
   const handleEpisodeChange = (episodeNumber) => {
     setSelectedEpisode(episodeNumber);
     try {
       localStorage.setItem(`apex_progress_${id}`, JSON.stringify({ season: selectedSeason, episode: episodeNumber }));
+      if (itemData) {
+        saveWatchHistoryItem({
+          id: itemData.id,
+          title: itemData.title || itemData.name,
+          name: itemData.name || itemData.title,
+          poster_path: itemData.poster_path,
+          backdrop_path: itemData.backdrop_path,
+          vote_average: itemData.vote_average,
+          media_type: 'tv',
+          season: selectedSeason,
+          episode: episodeNumber
+        });
+      }
     } catch (e) {}
     setPlayerKey((k) => k + 1);
   };
@@ -213,6 +286,30 @@ const Details = () => {
 
           setSelectedSeason(initialSeason);
           setSelectedEpisode(initialEpisode);
+
+          saveWatchHistoryItem({
+            id: data.id,
+            title: data.title || data.name,
+            name: data.name || data.title,
+            poster_path: data.poster_path,
+            backdrop_path: data.backdrop_path,
+            vote_average: data.vote_average,
+            media_type: 'tv',
+            season: initialSeason,
+            episode: initialEpisode
+          });
+        } else {
+          saveWatchHistoryItem({
+            id: data.id,
+            title: data.title || data.name,
+            name: data.name || data.title,
+            poster_path: data.poster_path,
+            backdrop_path: data.backdrop_path,
+            vote_average: data.vote_average,
+            media_type: 'movie',
+            season: 1,
+            episode: 1
+          });
         }
 
         // 3. Videos / Trailers
@@ -345,14 +442,21 @@ const Details = () => {
         <div className="relative max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8 py-4 sm:py-6">
           
           {/* Main Video Player Container */}
-          <div className="bg-[#12141c]/90 border border-gray-800/80 backdrop-blur-md rounded-2xl shadow-2xl p-3 sm:p-6 mb-8">
+          <div
+            ref={playerContainerRef}
+            className={`transition-all duration-300 ${
+              theaterMode
+                ? 'fixed inset-0 z-50 bg-[#07090e]/98 p-2 sm:p-6 overflow-y-auto flex flex-col justify-center shadow-2xl'
+                : 'bg-[#12141c]/90 border border-gray-800/80 backdrop-blur-md rounded-2xl shadow-2xl p-3 sm:p-6 mb-8'
+            }`}
+          >
             
             {/* Player Mode Switcher Tabs */}
             <div className="flex flex-wrap items-center justify-between gap-3 pb-3 mb-4 border-b border-gray-800">
               <div className="flex flex-wrap items-center gap-2">
                 <button
                   onClick={() => setActiveTab('stream')}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-xs sm:text-sm transition-all duration-200 shadow-md ${
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-xs sm:text-sm transition-colors duration-150 shadow-md ${
                     activeTab === 'stream'
                       ? 'bg-gradient-to-r from-orange-600 to-amber-600 text-white shadow-orange-600/30 ring-1 ring-orange-500/50'
                       : 'bg-gray-800/80 text-gray-300 hover:bg-gray-700 hover:text-white'
@@ -365,7 +469,7 @@ const Details = () => {
                 {trailerKey && (
                   <button
                     onClick={() => setActiveTab('trailer')}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-xs sm:text-sm transition-all duration-200 ${
+                    className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-xs sm:text-sm transition-colors duration-150 ${
                       activeTab === 'trailer'
                         ? 'bg-red-600 text-white shadow-lg shadow-red-600/30 ring-1 ring-red-500/50'
                         : 'bg-gray-800/80 text-gray-300 hover:bg-gray-700 hover:text-white'
@@ -387,12 +491,37 @@ const Details = () => {
                   }`}
                 >
                   {favStatus ? <FaHeart className="text-white text-xs sm:text-sm" /> : <FaRegHeart className="text-red-400 text-xs sm:text-sm" />}
-                  <span>{favStatus ? 'Favorited' : 'Favorite'}</span>
+                  <span className="hidden xs:inline">{favStatus ? 'Favorited' : 'Favorite'}</span>
                 </button>
               </div>
 
-              {/* Player Reload Action */}
+              {/* Right Player Actions: Cinema Mode + Audio Boost + Reload */}
               <div className="flex items-center gap-2">
+                {/* Cinema Mode Toggle (Rotates on Phone + Dims Screen on PC) */}
+                <button
+                  onClick={toggleCinemaMode}
+                  title={theaterMode ? "Exit Cinema Mode" : "Cinema Mode (Rotate screen / Full Theater)"}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors duration-150 border cursor-pointer ${
+                    theaterMode
+                      ? 'bg-orange-600 text-white border-orange-500 shadow-md shadow-orange-600/30'
+                      : 'bg-gray-800/80 hover:bg-gray-700 text-gray-300 hover:text-white border-gray-700/60'
+                  }`}
+                >
+                  {theaterMode ? <FaCompress className="text-xs" /> : <FaExpand className="text-xs" />}
+                  <span>{theaterMode ? 'Exit Cinema' : 'Cinema Mode'}</span>
+                </button>
+
+                {/* Audio Boost Guide / Recommendations */}
+                <button
+                  onClick={() => setShowAudioModal(true)}
+                  title="Audio Boost Guide & Recommendations"
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white rounded-xl text-xs font-semibold transition-colors shadow-md shadow-cyan-600/20 cursor-pointer border border-cyan-400/40"
+                >
+                  <FaVolumeUp className="text-xs" />
+                  <span className="hidden sm:inline">Audio Boost</span>
+                </button>
+
+                {/* Player Reload Action */}
                 {activeTab === 'stream' && (
                   <button
                     onClick={handleReloadPlayer}
@@ -400,7 +529,7 @@ const Details = () => {
                     className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white rounded-xl text-xs font-medium transition-colors border border-gray-700/50"
                   >
                     <FaRedoAlt className="text-[11px]" />
-                    <span>Reload</span>
+                    <span className="hidden sm:inline">Reload</span>
                   </button>
                 )}
               </div>
@@ -729,6 +858,93 @@ const Details = () => {
           )}
         </div>
       </div>
+
+      {/* Audio Boost Guide Modal */}
+      {showAudioModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
+          <div className="relative w-full max-w-lg bg-[#12151f] border border-cyan-500/40 rounded-2xl shadow-2xl p-5 sm:p-6 text-white space-y-4">
+            
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-gray-800 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-cyan-500/20 text-cyan-400">
+                  <FaVolumeUp className="text-lg" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-base sm:text-lg text-white">ترشيحات وحلول تحسين الصوت</h3>
+                  <p className="text-xs text-gray-400">طرق رفع صوت الأفلام والمسلسلات حتى 600%</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowAudioModal(false)}
+                className="p-2 rounded-xl bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700 transition-colors cursor-pointer"
+              >
+                <FaTimes />
+              </button>
+            </div>
+
+            {/* Content Tips */}
+            <div className="space-y-3.5 text-xs sm:text-sm text-gray-300">
+              
+              {/* PC / Chrome Extension Tip */}
+              <div className="p-3 bg-[#0d1017] rounded-xl border border-gray-800/90 space-y-1.5">
+                <div className="flex items-center gap-2 text-cyan-400 font-bold text-xs sm:text-sm">
+                  <FaDesktop className="text-sm" />
+                  <span>لمستخدمي الكمبيوتر (الخيار الأقوى):</span>
+                </div>
+                <p className="text-gray-300 text-xs leading-relaxed">
+                  ثبّت إضافة <strong className="text-white">Volume Master</strong> أو <strong className="text-white">Sound Booster</strong> المجانية لمتصفحك، وبتقدر ترفع صوت التبويب والسيرفر حتى <span className="text-emerald-400 font-bold">600%</span> مع صوت نقي وعالي جداً.
+                </p>
+              </div>
+
+              {/* Windows Loudness Equalization */}
+              <div className="p-3 bg-[#0d1017] rounded-xl border border-gray-800/90 space-y-1.5">
+                <div className="flex items-center gap-2 text-amber-400 font-bold text-xs sm:text-sm">
+                  <FaSlidersH className="text-sm" />
+                  <span>خاصية تضخيم الحوارات في ويندوز (Windows):</span>
+                </div>
+                <p className="text-gray-300 text-xs leading-relaxed">
+                  من إعدادات الصوت في الويندوز، ادخل على خصائص السماعات (Speakers) وفعل خيار <strong className="text-white">Loudness Equalization (تسوية ارتفاع الصوت)</strong> لتوضيح وتعلية أصوات الكلام المنخفض في الأفلام.
+                </p>
+              </div>
+
+              {/* Mobile Phone Tip */}
+              <div className="p-3 bg-[#0d1017] rounded-xl border border-gray-800/90 space-y-1.5">
+                <div className="flex items-center gap-2 text-pink-400 font-bold text-xs sm:text-sm">
+                  <FaMobileAlt className="text-sm" />
+                  <span>لمستخدمي الموبايل (Android / iPhone):</span>
+                </div>
+                <p className="text-gray-300 text-xs leading-relaxed">
+                  في إعدادات الهاتف وفّر تفعيل <strong className="text-white">Dolby Atmos</strong> أو اضبط موازن الصوت (Equalizer) على وضع <strong className="text-white">Vocal / Movie</strong>، وتأكد من رفع سلايدر الصوت داخل مشغل الفيديو نفسه لأقصى درجة.
+                </p>
+              </div>
+
+              {/* Server Tip */}
+              <div className="p-3 bg-[#0d1017] rounded-xl border border-gray-800/90 space-y-1.5">
+                <div className="flex items-center gap-2 text-orange-400 font-bold text-xs sm:text-sm">
+                  <FaHeadphones className="text-sm" />
+                  <span>ترشيح السيرفر الأفضل في الصوت:</span>
+                </div>
+                <p className="text-gray-300 text-xs leading-relaxed">
+                  سيرفر <strong className="text-white">VidLink</strong> وسيرفر <strong className="text-white">AutoEmbed</strong> يمتلكان أفضل نقاء صوت ومستوى Master Gain مرتفع بين السيرفرات.
+                </p>
+              </div>
+
+            </div>
+
+            {/* Modal Footer */}
+            <div className="pt-2 flex justify-end">
+              <button
+                onClick={() => setShowAudioModal(false)}
+                className="px-5 py-2 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 text-white font-semibold text-xs shadow-md shadow-orange-600/30 hover:scale-102 transition-all cursor-pointer"
+              >
+                فهمت، شكراً
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
     </div>
   );
 };
