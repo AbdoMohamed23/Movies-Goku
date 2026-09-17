@@ -16,12 +16,7 @@ import {
   FaRegHeart,
   FaExpand,
   FaCompress,
-  FaVolumeUp,
-  FaTimes,
-  FaDesktop,
-  FaMobileAlt,
-  FaHeadphones,
-  FaSlidersH
+  FaVolumeUp
 } from 'react-icons/fa';
 import { isFavorite, toggleFavorite } from '../utils/favorites';
 import { saveWatchHistoryItem } from '../utils/history';
@@ -94,8 +89,15 @@ const Details = () => {
   const [loading, setLoading] = useState(true);
   const [favStatus, setFavStatus] = useState(() => isFavorite(id));
   const [theaterMode, setTheaterMode] = useState(false);
-  const [showAudioModal, setShowAudioModal] = useState(false);
-  const playerContainerRef = useRef(null);
+  const [volumeLevel, setVolumeLevel] = useState(() => {
+    try {
+      return Number(localStorage.getItem('apex_volume_boost')) || 100;
+    } catch (e) {
+      return 100;
+    }
+  });
+  const [showVolumePopup, setShowVolumePopup] = useState(false);
+  const videoDisplayRef = useRef(null);
 
   // Sync favorite status
   useEffect(() => {
@@ -104,39 +106,62 @@ const Details = () => {
     return () => window.removeEventListener('apex_favorites_updated', updateFav);
   }, [id]);
 
-  // Handle Cinema / Theater Mode toggle with auto-rotate on mobile
+  // Fullscreen change listener to sync cinema mode when exiting
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        setTheaterMode(false);
+      }
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+    };
+  }, []);
+
+  // Handle Cinema Mode: Targets ONLY the video player frame
   const toggleCinemaMode = async () => {
-    const nextMode = !theaterMode;
-    setTheaterMode(nextMode);
+    const elem = videoDisplayRef.current;
+    if (!elem) return;
 
-    const isMobile = typeof window !== 'undefined' && (window.innerWidth <= 768 || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent));
-
-    if (nextMode) {
-      if (isMobile) {
-        try {
-          const elem = playerContainerRef.current || document.documentElement;
-          if (elem.requestFullscreen) {
-            await elem.requestFullscreen();
-          } else if (elem.webkitRequestFullscreen) {
-            await elem.webkitRequestFullscreen();
-          }
-          if (window.screen?.orientation?.lock) {
-            await window.screen.orientation.lock('landscape');
-          }
-        } catch (err) {
-          console.log('Fullscreen/orientation lock skipped:', err);
+    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+      try {
+        if (elem.requestFullscreen) {
+          await elem.requestFullscreen();
+        } else if (elem.webkitRequestFullscreen) {
+          await elem.webkitRequestFullscreen();
         }
+        if (window.screen?.orientation?.lock) {
+          await window.screen.orientation.lock('landscape').catch(() => {});
+        }
+        setTheaterMode(true);
+      } catch (err) {
+        setTheaterMode((prev) => !prev);
       }
     } else {
-      if (document.fullscreenElement) {
-        try {
+      try {
+        if (document.exitFullscreen) {
           await document.exitFullscreen();
-          if (window.screen?.orientation?.unlock) {
-            window.screen.orientation.unlock();
-          }
-        } catch (e) {}
-      }
+        } else if (document.webkitExitFullscreen) {
+          await document.webkitExitFullscreen();
+        }
+        if (window.screen?.orientation?.unlock) {
+          window.screen.orientation.unlock();
+        }
+      } catch (e) {}
+      setTheaterMode(false);
     }
+  };
+
+  // Change Volume Boost Level
+  const handleVolumeBoost = (newVol) => {
+    const clamped = Math.max(50, Math.min(400, newVol));
+    setVolumeLevel(clamped);
+    try {
+      localStorage.setItem('apex_volume_boost', String(clamped));
+    } catch (e) {}
   };
 
   const handleToggleFav = () => {
@@ -442,14 +467,7 @@ const Details = () => {
         <div className="relative max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8 py-4 sm:py-6">
           
           {/* Main Video Player Container */}
-          <div
-            ref={playerContainerRef}
-            className={`transition-all duration-300 ${
-              theaterMode
-                ? 'fixed inset-0 z-50 bg-[#07090e]/98 p-2 sm:p-6 overflow-y-auto flex flex-col justify-center shadow-2xl'
-                : 'bg-[#12141c]/90 border border-gray-800/80 backdrop-blur-md rounded-2xl shadow-2xl p-3 sm:p-6 mb-8'
-            }`}
-          >
+          <div className="bg-[#12141c]/90 border border-gray-800/80 backdrop-blur-md rounded-2xl shadow-2xl p-3 sm:p-6 mb-8">
             
             {/* Player Mode Switcher Tabs */}
             <div className="flex flex-wrap items-center justify-between gap-3 pb-3 mb-4 border-b border-gray-800">
@@ -495,15 +513,15 @@ const Details = () => {
                 </button>
               </div>
 
-              {/* Right Player Actions: Cinema Mode + Audio Boost + Reload */}
+              {/* Right Player Actions: Cinema Mode + Sound Booster + Reload */}
               <div className="flex items-center gap-2">
-                {/* Cinema Mode Toggle (Rotates on Phone + Dims Screen on PC) */}
+                {/* Cinema Mode Toggle (Targets ONLY the video screen) */}
                 <button
                   onClick={toggleCinemaMode}
-                  title={theaterMode ? "Exit Cinema Mode" : "Cinema Mode (Rotate screen / Full Theater)"}
+                  title={theaterMode ? "Exit Cinema Mode" : "Cinema Mode (Targets video screen only & rotates landscape on mobile)"}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors duration-150 border cursor-pointer ${
                     theaterMode
-                      ? 'bg-orange-600 text-white border-orange-500 shadow-md shadow-orange-600/30'
+                      ? 'bg-orange-600 text-white border-orange-500 shadow-md shadow-orange-600/30 ring-1 ring-orange-400/60'
                       : 'bg-gray-800/80 hover:bg-gray-700 text-gray-300 hover:text-white border-gray-700/60'
                   }`}
                 >
@@ -511,15 +529,83 @@ const Details = () => {
                   <span>{theaterMode ? 'Exit Cinema' : 'Cinema Mode'}</span>
                 </button>
 
-                {/* Audio Boost Guide / Recommendations */}
-                <button
-                  onClick={() => setShowAudioModal(true)}
-                  title="Audio Boost Guide & Recommendations"
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white rounded-xl text-xs font-semibold transition-colors shadow-md shadow-cyan-600/20 cursor-pointer border border-cyan-400/40"
-                >
-                  <FaVolumeUp className="text-xs" />
-                  <span className="hidden sm:inline">Audio Boost</span>
-                </button>
+                {/* Interactive Sound Booster Controller */}
+                <div className="relative">
+                  <button
+                    onClick={() => setShowVolumePopup(!showVolumePopup)}
+                    title="Boost & Control Sound Volume"
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors duration-150 border cursor-pointer ${
+                      volumeLevel > 100
+                        ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white border-emerald-400/50 shadow-md shadow-emerald-600/30 ring-1 ring-emerald-400/60'
+                        : 'bg-gray-800/80 hover:bg-gray-700 text-gray-300 hover:text-white border-gray-700/60'
+                    }`}
+                  >
+                    <FaVolumeUp className="text-xs text-emerald-400" />
+                    <span>{volumeLevel}% Sound</span>
+                  </button>
+
+                  {/* Volume Booster Popover */}
+                  {showVolumePopup && (
+                    <div className="absolute right-0 top-full mt-2 w-72 bg-[#121520] border border-emerald-500/40 rounded-2xl shadow-2xl p-4 z-40 space-y-3 backdrop-blur-md">
+                      <div className="flex items-center justify-between border-b border-gray-800 pb-2">
+                        <div className="flex items-center gap-2 text-emerald-400 font-bold text-xs">
+                          <FaVolumeUp />
+                          <span>Sound Volume Booster</span>
+                        </div>
+                        <span className="text-emerald-400 font-black text-xs bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/30">
+                          {volumeLevel}%
+                        </span>
+                      </div>
+
+                      {/* Slider */}
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-[10px] text-gray-400">
+                          <span>50%</span>
+                          <span>100% (Normal)</span>
+                          <span className="text-emerald-400 font-bold">400% (Max)</span>
+                        </div>
+                        <input
+                          type="range"
+                          min="50"
+                          max="400"
+                          step="10"
+                          value={volumeLevel}
+                          onChange={(e) => handleVolumeBoost(Number(e.target.value))}
+                          className="w-full h-2 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+                        />
+                      </div>
+
+                      {/* Quick Presets */}
+                      <div className="grid grid-cols-4 gap-1.5 pt-1">
+                        {[100, 150, 200, 300].map((v) => (
+                          <button
+                            key={v}
+                            onClick={() => handleVolumeBoost(v)}
+                            className={`py-1 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                              volumeLevel === v
+                                ? 'bg-emerald-600 text-white shadow-sm'
+                                : 'bg-[#181c28] text-gray-300 hover:bg-gray-700 hover:text-white border border-gray-800'
+                            }`}
+                          >
+                            {v}%
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Max Boost Button */}
+                      <button
+                        onClick={() => handleVolumeBoost(400)}
+                        className={`w-full py-1.5 rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer ${
+                          volumeLevel === 400
+                            ? 'bg-gradient-to-r from-red-600 to-orange-600 text-white ring-1 ring-red-400'
+                            : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-emerald-600/20'
+                        }`}
+                      >
+                        🚀 Ultra Boost (400%)
+                      </button>
+                    </div>
+                  )}
+                </div>
 
                 {/* Player Reload Action */}
                 {activeTab === 'stream' && (
@@ -656,8 +742,13 @@ const Details = () => {
               </div>
             )}
 
-            {/* Video Player Display */}
-            <div className="relative w-full aspect-video md:aspect-[21/9] lg:aspect-[16/9] max-h-[620px] rounded-xl overflow-hidden bg-black shadow-inner border border-gray-800/90">
+            {/* Video Player Display (Cinema Mode targets only this frame) */}
+            <div
+              ref={videoDisplayRef}
+              className={`relative w-full aspect-video md:aspect-[21/9] lg:aspect-[16/9] ${
+                theaterMode ? 'min-h-[60vh] sm:min-h-[85vh] max-h-[96vh] shadow-[0_0_60px_rgba(234,88,12,0.35)]' : 'max-h-[620px]'
+              } rounded-xl overflow-hidden bg-black shadow-2xl border border-gray-800/90 transition-all duration-300`}
+            >
               {activeTab === 'stream' && (
                 <iframe
                   key={`stream-${selectedServer}-${playerKey}-${id}-${selectedSeason}-${selectedEpisode}`}
@@ -747,51 +838,55 @@ const Details = () => {
                 {/* Genres */}
                 <div className="flex flex-wrap gap-2 mb-5">
                   {itemData.genres &&
-                    itemData.genres.map((g) => (
+                    itemData.genres.map((genre) => (
                       <span
-                        key={g.id}
-                        className="px-3 py-1 bg-orange-600/20 text-orange-400 border border-orange-500/30 rounded-full text-xs font-semibold"
+                        key={genre.id}
+                        className="bg-gray-800/90 text-orange-400 font-medium px-3 py-1 rounded-lg text-xs border border-gray-700/60"
                       >
-                        {g.name}
+                        {genre.name}
                       </span>
                     ))}
                 </div>
 
                 {/* Overview */}
-                <div className="space-y-2 mb-6">
-                  <h3 className="text-sm sm:text-base font-semibold text-white">Storyline</h3>
-                  <p className="text-gray-300 text-xs sm:text-sm leading-relaxed">
-                    {itemData.overview || 'No description available.'}
+                <div className="space-y-2">
+                  <h3 className="text-sm sm:text-base font-bold text-gray-200">Storyline</h3>
+                  <p className="text-gray-300 text-xs sm:text-sm leading-relaxed max-w-4xl">
+                    {itemData.overview || 'No storyline summary available.'}
                   </p>
                 </div>
               </div>
 
               {/* Cast Members */}
-              {credits.length > 0 && (
-                <div className="mt-4 pt-4 border-t border-gray-800">
-                  <h3 className="flex items-center gap-2 text-xs sm:text-sm font-semibold text-white mb-3">
+              {credits && credits.length > 0 && (
+                <div className="mt-6 pt-5 border-t border-gray-800/80">
+                  <div className="flex items-center gap-2 mb-3 text-xs sm:text-sm font-bold text-gray-200">
                     <FaUsers className="text-orange-400" />
-                    <span>Top Cast</span>
-                  </h3>
-                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
+                    <span>Top Cast:</span>
+                  </div>
+                  <div className="flex items-center gap-3 overflow-x-auto pb-2 custom-scrollbar">
                     {credits.map((actor) => (
                       <Link
                         key={actor.id}
                         to={`/?actor=${actor.id}&name=${encodeURIComponent(actor.name)}`}
-                        className="flex items-center gap-2 bg-gray-900/60 hover:bg-orange-600/20 hover:border-orange-500/50 p-1.5 sm:p-2 rounded-lg border border-gray-800 transition-all cursor-pointer group"
-                        title={`View movies with ${actor.name}`}
+                        className="flex-shrink-0 flex flex-col items-center gap-1.5 w-16 sm:w-20 group"
                       >
-                        <img
-                          src={
-                            actor.profile_path
-                              ? `https://image.tmdb.org/t/p/w185/${actor.profile_path}`
-                              : 'https://via.placeholder.com/100x100?text=Actor'
-                          }
-                          alt={actor.name}
-                          className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover border border-gray-700 flex-shrink-0 group-hover:border-orange-500 transition-colors"
-                        />
-                        <div className="overflow-hidden">
-                          <p className="text-[11px] sm:text-xs font-medium text-white truncate group-hover:text-orange-400 transition-colors">{actor.name}</p>
+                        <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden border-2 border-gray-700 group-hover:border-orange-500 transition-colors shadow-md">
+                          <img
+                            src={
+                              actor.profile_path
+                                ? `https://image.tmdb.org/t/p/w185/${actor.profile_path}`
+                                : 'https://via.placeholder.com/150?text=Actor'
+                            }
+                            alt={actor.name}
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                            loading="lazy"
+                          />
+                        </div>
+                        <div className="text-center w-full">
+                          <p className="text-[10px] sm:text-xs text-white font-medium truncate group-hover:text-orange-400 transition-colors">
+                            {actor.name}
+                          </p>
                           <p className="text-[9px] sm:text-[10px] text-gray-400 truncate">{actor.character}</p>
                         </div>
                       </Link>
@@ -858,93 +953,6 @@ const Details = () => {
           )}
         </div>
       </div>
-
-      {/* Audio Boost Guide Modal */}
-      {showAudioModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
-          <div className="relative w-full max-w-lg bg-[#12151f] border border-cyan-500/40 rounded-2xl shadow-2xl p-5 sm:p-6 text-white space-y-4">
-            
-            {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-gray-800 pb-3">
-              <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-xl bg-cyan-500/20 text-cyan-400">
-                  <FaVolumeUp className="text-lg" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-base sm:text-lg text-white">ترشيحات وحلول تحسين الصوت</h3>
-                  <p className="text-xs text-gray-400">طرق رفع صوت الأفلام والمسلسلات حتى 600%</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setShowAudioModal(false)}
-                className="p-2 rounded-xl bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700 transition-colors cursor-pointer"
-              >
-                <FaTimes />
-              </button>
-            </div>
-
-            {/* Content Tips */}
-            <div className="space-y-3.5 text-xs sm:text-sm text-gray-300">
-              
-              {/* PC / Chrome Extension Tip */}
-              <div className="p-3 bg-[#0d1017] rounded-xl border border-gray-800/90 space-y-1.5">
-                <div className="flex items-center gap-2 text-cyan-400 font-bold text-xs sm:text-sm">
-                  <FaDesktop className="text-sm" />
-                  <span>لمستخدمي الكمبيوتر (الخيار الأقوى):</span>
-                </div>
-                <p className="text-gray-300 text-xs leading-relaxed">
-                  ثبّت إضافة <strong className="text-white">Volume Master</strong> أو <strong className="text-white">Sound Booster</strong> المجانية لمتصفحك، وبتقدر ترفع صوت التبويب والسيرفر حتى <span className="text-emerald-400 font-bold">600%</span> مع صوت نقي وعالي جداً.
-                </p>
-              </div>
-
-              {/* Windows Loudness Equalization */}
-              <div className="p-3 bg-[#0d1017] rounded-xl border border-gray-800/90 space-y-1.5">
-                <div className="flex items-center gap-2 text-amber-400 font-bold text-xs sm:text-sm">
-                  <FaSlidersH className="text-sm" />
-                  <span>خاصية تضخيم الحوارات في ويندوز (Windows):</span>
-                </div>
-                <p className="text-gray-300 text-xs leading-relaxed">
-                  من إعدادات الصوت في الويندوز، ادخل على خصائص السماعات (Speakers) وفعل خيار <strong className="text-white">Loudness Equalization (تسوية ارتفاع الصوت)</strong> لتوضيح وتعلية أصوات الكلام المنخفض في الأفلام.
-                </p>
-              </div>
-
-              {/* Mobile Phone Tip */}
-              <div className="p-3 bg-[#0d1017] rounded-xl border border-gray-800/90 space-y-1.5">
-                <div className="flex items-center gap-2 text-pink-400 font-bold text-xs sm:text-sm">
-                  <FaMobileAlt className="text-sm" />
-                  <span>لمستخدمي الموبايل (Android / iPhone):</span>
-                </div>
-                <p className="text-gray-300 text-xs leading-relaxed">
-                  في إعدادات الهاتف وفّر تفعيل <strong className="text-white">Dolby Atmos</strong> أو اضبط موازن الصوت (Equalizer) على وضع <strong className="text-white">Vocal / Movie</strong>، وتأكد من رفع سلايدر الصوت داخل مشغل الفيديو نفسه لأقصى درجة.
-                </p>
-              </div>
-
-              {/* Server Tip */}
-              <div className="p-3 bg-[#0d1017] rounded-xl border border-gray-800/90 space-y-1.5">
-                <div className="flex items-center gap-2 text-orange-400 font-bold text-xs sm:text-sm">
-                  <FaHeadphones className="text-sm" />
-                  <span>ترشيح السيرفر الأفضل في الصوت:</span>
-                </div>
-                <p className="text-gray-300 text-xs leading-relaxed">
-                  سيرفر <strong className="text-white">VidLink</strong> وسيرفر <strong className="text-white">AutoEmbed</strong> يمتلكان أفضل نقاء صوت ومستوى Master Gain مرتفع بين السيرفرات.
-                </p>
-              </div>
-
-            </div>
-
-            {/* Modal Footer */}
-            <div className="pt-2 flex justify-end">
-              <button
-                onClick={() => setShowAudioModal(false)}
-                className="px-5 py-2 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 text-white font-semibold text-xs shadow-md shadow-orange-600/30 hover:scale-102 transition-all cursor-pointer"
-              >
-                فهمت، شكراً
-              </button>
-            </div>
-
-          </div>
-        </div>
-      )}
     </div>
   );
 };
