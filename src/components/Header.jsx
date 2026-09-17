@@ -14,8 +14,7 @@ import {
     FaSmile, 
     FaGhost, 
     FaMagic, 
-    FaMask,
-    FaLanguage
+    FaMask 
 } from 'react-icons/fa';
 
 const Header = () => {
@@ -43,7 +42,6 @@ const Header = () => {
         { name: 'Home', path: '/', icon: <FaFilm className="text-orange-400" /> },
         { name: 'Movies', path: '/?cat=movies', icon: <FaFilm className="text-amber-400" /> },
         { name: 'TV Series', path: '/?cat=tv', icon: <FaTv className="text-blue-400" /> },
-        { name: 'Dubbed', path: '/?cat=dubbed', icon: <FaLanguage className="text-emerald-400" /> },
         { name: 'Animation', path: '/?cat=animation', icon: <FaPalette className="text-pink-400" /> },
         { name: 'Popular', path: '/?cat=popular', icon: <FaFire className="text-orange-500" /> },
         { name: 'Top Rated', path: '/?cat=top_rated', icon: <FaStar className="text-yellow-400" /> },

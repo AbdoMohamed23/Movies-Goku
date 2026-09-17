@@ -17,8 +17,7 @@ import {
     FaArrowRight,
     FaUser,
     FaChevronLeft,
-    FaChevronRight,
-    FaLanguage
+    FaChevronRight
 } from "react-icons/fa";
 
 const API_KEY = "52ef927bbeb21980cd91386a29403c78";
@@ -35,12 +34,6 @@ const CATEGORIES = [
         title: "TV Series",
         icon: <FaTv className="text-blue-400" />,
         url: (page) => `https://api.themoviedb.org/3/tv/popular?api_key=${API_KEY}&language=en&page=${page}`
-    },
-    {
-        id: "dubbed",
-        title: "Arabic Dubbed",
-        icon: <FaLanguage className="text-emerald-400" />,
-        url: (page) => `https://api.themoviedb.org/3/discover/movie?api_key=${API_KEY}&language=en&with_genres=16,10751,12&sort_by=popularity.desc&page=${page}`
     },
     {
         id: "animation",
