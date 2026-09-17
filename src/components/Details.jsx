@@ -485,9 +485,12 @@ const Details = () => {
 
             {/* Tip Notice */}
             {activeTab === 'stream' && (
-              <div className="mt-3 flex items-center gap-2 text-xs text-gray-400 bg-gray-900/60 px-3 py-2 rounded-lg border border-gray-800/50">
-                <FaInfoCircle className="text-orange-400 flex-shrink-0" />
-                <span>نصيحة: يمكنك التبديل بين السيرفرات بالأعلى أو اختيار الأجزاء/المواسم التالية مباشرة.</span>
+              <div className="mt-3 flex items-center justify-between flex-wrap gap-2 text-xs text-gray-400 bg-gray-900/60 px-3.5 py-2.5 rounded-xl border border-gray-800/60">
+                <div className="flex items-center gap-2">
+                  <FaInfoCircle className="text-orange-400 flex-shrink-0" />
+                  <span>الترجمة العربية: اضغط على أيقونة <strong className="text-orange-400">CC</strong> داخل مشغل الفيديو واختر <strong className="text-white">Arabic</strong> لظهور الترجمة المضبوطة.</span>
+                </div>
+                <span className="text-[11px] text-gray-500 hidden sm:inline">يمكنك التبديل بين السيرفرات أو الأجزاء في أي وقت</span>
               </div>
             )}
           </div>
