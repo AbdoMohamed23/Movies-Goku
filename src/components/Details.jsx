@@ -10,14 +10,13 @@ import {
   FaServer, 
   FaRedoAlt, 
   FaUsers, 
-  FaInfoCircle,
   FaTv,
   FaLayerGroup
 } from 'react-icons/fa';
 
 const API_KEY = '52ef927bbeb21980cd91386a29403c78';
 
-// قائمة السيرفرات النشطة والنظيفة للأفلام والمسلسلات 
+// قائمة السيرفرات المتوافقة مع أسماء مصادر المشاهدة
 const SERVERS = [
   { 
     id: 'vidlink', 
@@ -26,26 +25,44 @@ const SERVERS = [
     tvUrl: (id, s, e) => `https://vidlink.pro/tv/${id}/${s}/${e}?autoplay=false&primaryColor=ea580c`
   },
   { 
-    id: 'smashystream', 
-    name: 'Server 2 (SmashyStream)', 
+    id: 'filemoon', 
+    name: 'Filemoon', 
+    movieUrl: (id) => `https://vidsrc.cc/v2/embed/movie/${id}`,
+    tvUrl: (id, s, e) => `https://vidsrc.cc/v2/embed/tv/${id}/${s}/${e}`
+  },
+  { 
+    id: 'upnshare', 
+    name: 'Upnshare', 
     movieUrl: (id) => `https://player.smashy.stream/movie/${id}`,
     tvUrl: (id, s, e) => `https://player.smashy.stream/tv/${id}?s=${s}&e=${e}`
   },
   { 
-    id: 'vidsrc_xyz', 
-    name: 'Server 3 (VidSrc XYZ)', 
+    id: 'forafile', 
+    name: 'Forafile', 
     movieUrl: (id) => `https://vidsrc.xyz/embed/movie/${id}`,
     tvUrl: (id, s, e) => `https://vidsrc.xyz/embed/tv/${id}/${s}/${e}`
   },
   { 
-    id: 'vidsrc_rip', 
-    name: 'Server 4 (VidSrc Rip)', 
+    id: 'uqload', 
+    name: 'Uqload', 
     movieUrl: (id) => `https://vidsrc.rip/embed/movie/${id}`,
     tvUrl: (id, s, e) => `https://vidsrc.rip/embed/tv/${id}/${s}/${e}`
   },
   { 
-    id: '2embed', 
-    name: 'Server 5 (2Embed Skin)', 
+    id: 'vk', 
+    name: 'VK', 
+    movieUrl: (id) => `https://vidsrc.in/embed/movie/${id}`,
+    tvUrl: (id, s, e) => `https://vidsrc.in/embed/tv/${id}/${s}/${e}`
+  },
+  { 
+    id: 'ok', 
+    name: 'OK', 
+    movieUrl: (id) => `https://vidsrc.pm/embed/movie/${id}`,
+    tvUrl: (id, s, e) => `https://vidsrc.pm/embed/tv/${id}/${s}/${e}`
+  },
+  { 
+    id: 'savefiles', 
+    name: 'Save Files', 
     movieUrl: (id) => `https://www.2embed.skin/embed/movie/${id}`,
     tvUrl: (id, s, e) => `https://www.2embed.skin/embed/tv/${id}/${s}/${e}`
   },
@@ -66,16 +83,55 @@ const Details = () => {
   // Franchise / Collection parts (e.g. The Godfather 1, 2, 3)
   const [collection, setCollection] = useState(null);
   
-  // TV Show Season & Episode states
+  // TV Show Season & Episode states with local progress memory
   const [seasons, setSeasons] = useState([]);
   const [selectedSeason, setSelectedSeason] = useState(1);
   const [episodes, setEpisodes] = useState([]);
   const [selectedEpisode, setSelectedEpisode] = useState(1);
 
   const [activeTab, setActiveTab] = useState('stream'); // 'stream' | 'trailer'
-  const [selectedServer, setSelectedServer] = useState(SERVERS[0].id);
+  
+  // Persisted preferred server
+  const [selectedServer, setSelectedServer] = useState(() => {
+    try {
+      const savedServer = localStorage.getItem('apex_preferred_server');
+      if (savedServer && SERVERS.some((s) => s.id === savedServer)) {
+        return savedServer;
+      }
+    } catch (e) {}
+    return SERVERS[0].id;
+  });
+
   const [playerKey, setPlayerKey] = useState(0);
   const [loading, setLoading] = useState(true);
+
+  // Save selected server preference
+  const handleServerChange = (serverId) => {
+    setSelectedServer(serverId);
+    try {
+      localStorage.setItem('apex_preferred_server', serverId);
+    } catch (e) {}
+    setPlayerKey((k) => k + 1);
+  };
+
+  // Save season progress
+  const handleSeasonChange = (seasonNumber) => {
+    setSelectedSeason(seasonNumber);
+    setSelectedEpisode(1);
+    try {
+      localStorage.setItem(`apex_progress_${id}`, JSON.stringify({ season: seasonNumber, episode: 1 }));
+    } catch (e) {}
+    setPlayerKey((k) => k + 1);
+  };
+
+  // Save episode progress
+  const handleEpisodeChange = (episodeNumber) => {
+    setSelectedEpisode(episodeNumber);
+    try {
+      localStorage.setItem(`apex_progress_${id}`, JSON.stringify({ season: selectedSeason, episode: episodeNumber }));
+    } catch (e) {}
+    setPlayerKey((k) => k + 1);
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -134,13 +190,27 @@ const Details = () => {
           }
         }
 
-        // 2. If TV Show, set up seasons and episodes
+        // 2. If TV Show, restore saved season and episode progress
         if (isTvShow && data.seasons) {
           const validSeasons = data.seasons.filter((s) => s.season_number > 0);
-          setSeasons(validSeasons.length > 0 ? validSeasons : data.seasons);
-          const initialSeason = validSeasons.length > 0 ? validSeasons[0].season_number : 1;
+          const availableSeasons = validSeasons.length > 0 ? validSeasons : data.seasons;
+          setSeasons(availableSeasons);
+
+          let initialSeason = availableSeasons.length > 0 ? availableSeasons[0].season_number : 1;
+          let initialEpisode = 1;
+
+          try {
+            const savedProgress = JSON.parse(localStorage.getItem(`apex_progress_${id}`));
+            if (savedProgress && savedProgress.season) {
+              if (availableSeasons.some((s) => s.season_number === savedProgress.season)) {
+                initialSeason = savedProgress.season;
+                initialEpisode = savedProgress.episode || 1;
+              }
+            }
+          } catch (e) {}
+
           setSelectedSeason(initialSeason);
-          setSelectedEpisode(1);
+          setSelectedEpisode(initialEpisode);
         }
 
         // 3. Videos / Trailers
@@ -367,11 +437,7 @@ const Details = () => {
                       return (
                         <button
                           key={season.id}
-                          onClick={() => {
-                            setSelectedSeason(season.season_number);
-                            setSelectedEpisode(1);
-                            setPlayerKey((k) => k + 1);
-                          }}
+                          onClick={() => handleSeasonChange(season.season_number)}
                           className={`px-5 sm:px-6 py-1.5 sm:py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
                             isCurrentSeason
                               ? 'bg-blue-600 text-white font-bold shadow-md shadow-blue-600/30 ring-1 ring-blue-400/50'
@@ -398,10 +464,7 @@ const Details = () => {
                         return (
                           <button
                             key={ep.id}
-                            onClick={() => {
-                              setSelectedEpisode(ep.episode_number);
-                              setPlayerKey((k) => k + 1);
-                            }}
+                            onClick={() => handleEpisodeChange(ep.episode_number)}
                             className={`flex items-center gap-1.5 px-4 sm:px-5 py-1.5 sm:py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-all ${
                               isCurrentEp
                                 ? 'bg-blue-600 text-white font-bold shadow-md shadow-blue-600/30 ring-1 ring-blue-400/50'
@@ -433,10 +496,7 @@ const Details = () => {
                     return (
                       <button
                         key={server.id}
-                        onClick={() => {
-                          setSelectedServer(server.id);
-                          setPlayerKey((k) => k + 1);
-                        }}
+                        onClick={() => handleServerChange(server.id)}
                         className={`px-5 sm:px-6 py-1.5 sm:py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
                           isCurrentServer
                             ? 'bg-gradient-to-r from-orange-600 to-amber-600 text-white font-bold shadow-md shadow-orange-600/30 ring-1 ring-orange-400/50'
@@ -482,17 +542,6 @@ const Details = () => {
                 )
               )}
             </div>
-
-            {/* Tip Notice */}
-            {activeTab === 'stream' && (
-              <div className="mt-3 flex items-center justify-between flex-wrap gap-2 text-xs text-gray-400 bg-gray-900/60 px-3.5 py-2.5 rounded-xl border border-gray-800/60">
-                <div className="flex items-center gap-2">
-                  <FaInfoCircle className="text-orange-400 flex-shrink-0" />
-                  <span>الترجمة العربية: اضغط على أيقونة <strong className="text-orange-400">CC</strong> داخل مشغل الفيديو واختر <strong className="text-white">Arabic</strong> لظهور الترجمة المضبوطة.</span>
-                </div>
-                <span className="text-[11px] text-gray-500 hidden sm:inline">يمكنك التبديل بين السيرفرات أو الأجزاء في أي وقت</span>
-              </div>
-            )}
           </div>
 
           {/* Details Info Card */}
