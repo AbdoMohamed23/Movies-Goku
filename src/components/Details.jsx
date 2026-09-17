@@ -17,7 +17,7 @@ import {
 
 const API_KEY = '52ef927bbeb21980cd91386a29403c78';
 
-// قائمة أحدث السيرفرات النشطة للأفلام والمسلسلات 
+// قائمة السيرفرات النشطة والنظيفة للأفلام والمسلسلات 
 const SERVERS = [
   { 
     id: 'vidlink', 
@@ -26,40 +26,28 @@ const SERVERS = [
     tvUrl: (id, s, e) => `https://vidlink.pro/tv/${id}/${s}/${e}?autoplay=false&primaryColor=ea580c`
   },
   { 
-    id: 'embedsu', 
-    name: 'Server 2 (Embed.su HD)', 
-    movieUrl: (id) => `https://embed.su/embed/movie/${id}`,
-    tvUrl: (id, s, e) => `https://embed.su/embed/tv/${id}/${s}/${e}`
+    id: 'smashystream', 
+    name: 'Server 2 (SmashyStream)', 
+    movieUrl: (id) => `https://player.smashy.stream/movie/${id}`,
+    tvUrl: (id, s, e) => `https://player.smashy.stream/tv/${id}?s=${s}&e=${e}`
   },
   { 
-    id: 'vidsrc_net', 
-    name: 'Server 3 (VidSrc Net)', 
-    movieUrl: (id) => `https://vidsrc.net/embed/movie/${id}`,
-    tvUrl: (id, s, e) => `https://vidsrc.net/embed/tv/${id}/${s}/${e}`
+    id: 'vidsrc_xyz', 
+    name: 'Server 3 (VidSrc XYZ)', 
+    movieUrl: (id) => `https://vidsrc.xyz/embed/movie/${id}`,
+    tvUrl: (id, s, e) => `https://vidsrc.xyz/embed/tv/${id}/${s}/${e}`
   },
   { 
-    id: 'vidsrc_pro', 
-    name: 'Server 4 (VidSrc Pro)', 
-    movieUrl: (id) => `https://vidsrc.pro/embed/movie/${id}`,
-    tvUrl: (id, s, e) => `https://vidsrc.pro/embed/tv/${id}/${s}/${e}`
+    id: 'vidsrc_rip', 
+    name: 'Server 4 (VidSrc Rip)', 
+    movieUrl: (id) => `https://vidsrc.rip/embed/movie/${id}`,
+    tvUrl: (id, s, e) => `https://vidsrc.rip/embed/tv/${id}/${s}/${e}`
   },
   { 
-    id: 'autoembed', 
-    name: 'Server 5 (AutoEmbed Fast)', 
-    movieUrl: (id) => `https://player.autoembed.cc/embed/movie/${id}`,
-    tvUrl: (id, s, e) => `https://player.autoembed.cc/embed/tv/${id}/${s}/${e}`
-  },
-  { 
-    id: 'moviesapi', 
-    name: 'Server 6 (MoviesAPI)', 
-    movieUrl: (id) => `https://moviesapi.club/movie/${id}`,
-    tvUrl: (id, s, e) => `https://moviesapi.club/tv/${id}-${s}-${e}`
-  },
-  { 
-    id: 'multiembed', 
-    name: 'Server 7 (MultiEmbed)', 
-    movieUrl: (id) => `https://multiembed.mov/?video_id=${id}&tmdb=1`,
-    tvUrl: (id, s, e) => `https://multiembed.mov/?video_id=${id}&tmdb=1&s=${s}&e=${e}`
+    id: '2embed', 
+    name: 'Server 5 (2Embed Skin)', 
+    movieUrl: (id) => `https://www.2embed.skin/embed/movie/${id}`,
+    tvUrl: (id, s, e) => `https://www.2embed.skin/embed/tv/${id}/${s}/${e}`
   },
 ];
 
