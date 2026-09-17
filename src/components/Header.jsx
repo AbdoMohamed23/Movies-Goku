@@ -14,12 +14,22 @@ import {
     FaSmile, 
     FaGhost, 
     FaMagic, 
-    FaMask 
+    FaMask,
+    FaHeart
 } from 'react-icons/fa';
+import { getFavorites } from '../utils/favorites';
 
 const Header = () => {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [favCount, setFavCount] = useState(() => getFavorites().length);
     const location = useLocation();
+
+    // Listen to favorites updates
+    useEffect(() => {
+        const updateFavCount = () => setFavCount(getFavorites().length);
+        window.addEventListener('apex_favorites_updated', updateFavCount);
+        return () => window.removeEventListener('apex_favorites_updated', updateFavCount);
+    }, []);
 
     // Close mobile drawer when route/query changes
     useEffect(() => {
@@ -42,6 +52,7 @@ const Header = () => {
         { name: 'Home', path: '/', icon: <FaFilm className="text-orange-400" /> },
         { name: 'Movies', path: '/?cat=movies', icon: <FaFilm className="text-amber-400" /> },
         { name: 'TV Series', path: '/?cat=tv', icon: <FaTv className="text-blue-400" /> },
+        { name: 'Favorites', path: '/?cat=favorites', icon: <FaHeart className="text-red-500" />, count: favCount },
         { name: 'Animation', path: '/?cat=animation', icon: <FaPalette className="text-pink-400" /> },
         { name: 'Popular', path: '/?cat=popular', icon: <FaFire className="text-orange-500" /> },
         { name: 'Top Rated', path: '/?cat=top_rated', icon: <FaStar className="text-yellow-400" /> },
@@ -53,8 +64,8 @@ const Header = () => {
         { name: 'Drama', path: '/?cat=drama', icon: <FaMask className="text-blue-400" /> },
     ];
 
-    // Primary desktop links
-    const desktopLinks = allCategories.slice(0, 6);
+    // Primary desktop links (Home, Movies, TV Series, Favorites, Animation)
+    const desktopLinks = allCategories.slice(0, 5);
 
     return (
         <>
@@ -74,7 +85,7 @@ const Header = () => {
                             </Link>
 
                             {/* Desktop Navigation */}
-                            <nav className="hidden xl:flex items-center gap-1">
+                            <nav className="hidden lg:flex items-center gap-1">
                                 {desktopLinks.map((link) => {
                                     const isActive = location.pathname + location.search === link.path;
                                     return (
@@ -89,37 +100,46 @@ const Header = () => {
                                         >
                                             {link.icon}
                                             <span>{link.name}</span>
+                                            {typeof link.count === 'number' && link.count > 0 && (
+                                                <span className="ml-1 bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full shadow">
+                                                    {link.count}
+                                                </span>
+                                            )}
                                         </Link>
                                     );
                                 })}
                             </nav>
                         </div>
 
-                        {/* Right Actions: Search + Mobile Menu Button */}
-                        <div className="flex items-center gap-2.5">
+                        {/* Right Actions: Search + Universal Menu Button (Desktop & Mobile) */}
+                        <div className="flex items-center gap-2 sm:gap-3">
                             <Link
                                 to="/search"
                                 className="p-2.5 rounded-xl bg-gray-800 text-gray-200 hover:text-white hover:bg-gray-700 border border-gray-700/80 flex items-center justify-center transition-colors shadow-sm"
                                 title="Search movies"
                                 aria-label="Search movies"
                             >
-                                <FaSearch className="text-lg text-orange-400 hover:text-white" />
+                                <FaSearch className="text-base sm:text-lg text-orange-400 hover:text-white" />
                             </Link>
 
-                            {/* Mobile Hamburger Button */}
+                            {/* Universal Menu Button (Visible on Desktop, Tablet & Mobile) */}
                             <button
                                 onClick={() => setMobileMenuOpen(true)}
-                                className="xl:hidden p-2.5 rounded-xl bg-gray-800 text-gray-200 hover:text-white hover:bg-gray-700 border border-gray-700/80 focus:outline-none transition-colors"
-                                aria-label="Open mobile menu"
+                                className="flex items-center gap-2 px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-200 hover:text-white border border-gray-700/80 transition-all shadow-sm group cursor-pointer"
+                                aria-label="Open full menu"
+                                title="All Categories & Menu"
                             >
-                                <FaBars className="text-lg" />
+                                <FaBars className="text-base sm:text-lg group-hover:text-orange-400 transition-colors" />
+                                <span className="hidden sm:inline text-xs font-bold text-gray-300 group-hover:text-white transition-colors">
+                                    Menu
+                                </span>
                             </button>
                         </div>
                     </div>
                 </div>
             </header>
 
-            {/* Smooth Mobile Drawer from the Right */}
+            {/* Smooth Drawer from the Right for All Screens */}
             {/* Backdrop */}
             <div
                 className={`fixed inset-0 bg-black/75 backdrop-blur-sm z-50 transition-opacity duration-300 ease-in-out ${
@@ -141,12 +161,12 @@ const Header = () => {
                             ĀPEX
                         </span>
                         <span className="text-[9px] text-gray-400 font-semibold tracking-widest uppercase">
-                            Menu & Categories
+                            All Sections & Genres
                         </span>
                     </div>
                     <button
                         onClick={() => setMobileMenuOpen(false)}
-                        className="p-2 rounded-xl bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700 transition-colors"
+                        className="p-2 rounded-xl bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700 transition-colors cursor-pointer"
                         aria-label="Close menu"
                     >
                         <FaTimes className="text-lg" />
@@ -154,9 +174,9 @@ const Header = () => {
                 </div>
 
                 {/* All Menu Items with Icons */}
-                <div className="flex-1 overflow-y-auto p-4 space-y-1.5">
+                <div className="flex-1 overflow-y-auto p-4 space-y-1.5 custom-scrollbar">
                     <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider px-3 mb-2">
-                        Genres & Discovery
+                        Browse Everything
                     </p>
                     {allCategories.map((item) => {
                         const isActive = location.pathname + location.search === item.path;
@@ -173,6 +193,11 @@ const Header = () => {
                             >
                                 <span className="text-base flex-shrink-0">{item.icon}</span>
                                 <span className="flex-1">{item.name}</span>
+                                {typeof item.count === 'number' && item.count > 0 && (
+                                    <span className="bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow">
+                                        {item.count}
+                                    </span>
+                                )}
                             </Link>
                         );
                     })}

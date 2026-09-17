@@ -11,8 +11,11 @@ import {
   FaRedoAlt, 
   FaUsers, 
   FaTv,
-  FaLayerGroup
+  FaLayerGroup,
+  FaHeart,
+  FaRegHeart
 } from 'react-icons/fa';
+import { isFavorite, toggleFavorite } from '../utils/favorites';
 
 const API_KEY = '52ef927bbeb21980cd91386a29403c78';
 
@@ -80,6 +83,29 @@ const Details = () => {
 
   const [playerKey, setPlayerKey] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [favStatus, setFavStatus] = useState(() => isFavorite(id));
+
+  // Sync favorite status
+  useEffect(() => {
+    const updateFav = () => setFavStatus(isFavorite(id));
+    window.addEventListener('apex_favorites_updated', updateFav);
+    return () => window.removeEventListener('apex_favorites_updated', updateFav);
+  }, [id]);
+
+  const handleToggleFav = () => {
+    if (!itemData) return;
+    toggleFavorite({
+      id: itemData.id,
+      title: itemData.title || itemData.name,
+      name: itemData.name || itemData.title,
+      poster_path: itemData.poster_path,
+      backdrop_path: itemData.backdrop_path,
+      vote_average: itemData.vote_average,
+      release_date: itemData.release_date,
+      first_air_date: itemData.first_air_date,
+      media_type: isTv ? 'tv' : 'movie'
+    });
+  };
 
   // Save selected server preference
   const handleServerChange = (serverId) => {
@@ -349,6 +375,20 @@ const Details = () => {
                     <span>Trailer</span>
                   </button>
                 )}
+
+                {/* Favorite Toggle Button */}
+                <button
+                  onClick={handleToggleFav}
+                  title={favStatus ? "Remove from Favorites" : "Add to Favorites"}
+                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl font-semibold text-xs sm:text-sm transition-all duration-200 cursor-pointer shadow-md ${
+                    favStatus
+                      ? 'bg-red-600 text-white shadow-red-600/40 ring-1 ring-red-400/60 scale-105'
+                      : 'bg-gray-800/80 text-gray-300 hover:text-red-400 hover:bg-gray-700 border border-gray-700/50'
+                  }`}
+                >
+                  {favStatus ? <FaHeart className="text-white text-xs sm:text-sm" /> : <FaRegHeart className="text-red-400 text-xs sm:text-sm" />}
+                  <span>{favStatus ? 'Favorited' : 'Favorite'}</span>
+                </button>
               </div>
 
               {/* Player Reload Action */}

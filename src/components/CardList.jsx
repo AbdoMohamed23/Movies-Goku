@@ -17,12 +17,21 @@ import {
     FaArrowRight,
     FaUser,
     FaChevronLeft,
-    FaChevronRight
+    FaChevronRight,
+    FaHeart,
+    FaCompass
 } from "react-icons/fa";
+import { getFavorites } from "../utils/favorites";
 
 const API_KEY = "52ef927bbeb21980cd91386a29403c78";
 
 const CATEGORIES = [
+    {
+        id: "favorites",
+        title: "Favorites",
+        icon: <FaHeart className="text-red-500" />,
+        isLocal: true
+    },
     {
         id: "movies",
         title: "Movies",
@@ -97,6 +106,14 @@ const CardList = () => {
     const actorIdParam = searchParams.get("actor");
     const actorNameParam = searchParams.get("name") || "Actor";
     const currentPage = Number(searchParams.get("page")) || 1;
+    const [favVersion, setFavVersion] = useState(0);
+
+    // Listen for favorite events
+    useEffect(() => {
+        const onFavs = () => setFavVersion((v) => v + 1);
+        window.addEventListener('apex_favorites_updated', onFavs);
+        return () => window.removeEventListener('apex_favorites_updated', onFavs);
+    }, []);
 
     // Homepage sections data
     const [tvSeries, setTvSeries] = useState([]);
@@ -112,14 +129,27 @@ const CardList = () => {
     const isSingleCategory = Boolean(categoryParam || actorIdParam);
 
     const activeCategoryObj = useMemo(() => {
-        return CATEGORIES.find((cat) => cat.id === categoryParam) || CATEGORIES[0];
+        return CATEGORIES.find((cat) => cat.id === categoryParam) || CATEGORIES[1];
     }, [categoryParam]);
 
     useEffect(() => {
         const fetchContent = async () => {
             setLoading(true);
             try {
-                if (actorIdParam) {
+                if (categoryParam === 'favorites') {
+                    // Local Favorites list
+                    const allFavs = getFavorites();
+                    const perPage = 21;
+                    const total = allFavs.length;
+                    const calculatedPages = Math.max(1, Math.ceil(total / perPage));
+                    const safePage = Math.min(currentPage, calculatedPages);
+                    const offset = (safePage - 1) * perPage;
+                    const pageItems = allFavs.slice(offset, offset + perPage);
+
+                    setFilteredItems(pageItems);
+                    setTotalResults(total);
+                    setTotalPages(calculatedPages);
+                } else if (actorIdParam) {
                     // Calculate exact 21 items for page
                     const tmdbPageStart = Math.floor(((currentPage - 1) * 21) / 20) + 1;
                     const tmdbPageEnd = Math.floor((currentPage * 21 - 1) / 20) + 1;
@@ -142,7 +172,7 @@ const CardList = () => {
                     const total = responses[0].data.total_results || 0;
                     setTotalResults(total);
                     setTotalPages(Math.min(Math.ceil(total / 21) || 1, 500));
-                } else if (categoryParam) {
+                } else if (categoryParam && activeCategoryObj.url) {
                     // Calculate exact 21 items for page
                     const tmdbPageStart = Math.floor(((currentPage - 1) * 21) / 20) + 1;
                     const tmdbPageEnd = Math.floor((currentPage * 21 - 1) / 20) + 1;
@@ -189,7 +219,7 @@ const CardList = () => {
 
         fetchContent();
         window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, [categoryParam, actorIdParam, currentPage, activeCategoryObj]);
+    }, [categoryParam, actorIdParam, currentPage, activeCategoryObj, favVersion]);
 
     const handleCategorySelect = (catId) => {
         setSearchParams({ cat: catId, page: '1' });
@@ -309,10 +339,35 @@ const CardList = () => {
                         </div>
                     </div>
 
-                    {/* Movies Grid */}
-                    <div className="w-full grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-x-2 sm:gap-x-4 md:gap-x-5 gap-y-5 sm:gap-y-7 md:gap-y-9">
-                        <Card movies={filteredItems} />
-                    </div>
+                    {/* Movies Grid or Empty State */}
+                    {filteredItems.length === 0 ? (
+                        <div className="min-h-[35vh] flex flex-col items-center justify-center p-8 bg-[#11131a] rounded-2xl border border-gray-800 text-center space-y-4">
+                            <div className="w-16 h-16 rounded-full bg-red-600/10 border border-red-500/30 flex items-center justify-center text-red-500 text-2xl shadow-inner">
+                                {categoryParam === 'favorites' ? <FaHeart /> : <FaCompass />}
+                            </div>
+                            <div className="space-y-1">
+                                <h3 className="text-lg font-bold text-white">
+                                    {categoryParam === 'favorites' ? "No Favorites Saved Yet" : "No Items Found"}
+                                </h3>
+                                <p className="text-gray-400 text-xs sm:text-sm max-w-md">
+                                    {categoryParam === 'favorites' 
+                                        ? "Click the heart icon on any movie or TV series card to add it to your personal favorites list."
+                                        : "We couldn't find any content matching this category right now."}
+                                </p>
+                            </div>
+                            <Link
+                                to="/"
+                                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 text-white font-semibold text-xs shadow-lg shadow-orange-600/30 hover:scale-105 transition-all"
+                            >
+                                <FaCompass />
+                                <span>Browse Movies & Series</span>
+                            </Link>
+                        </div>
+                    ) : (
+                        <div className="w-full grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-x-2 sm:gap-x-4 md:gap-x-5 gap-y-5 sm:gap-y-7 md:gap-y-9">
+                            <Card movies={filteredItems} />
+                        </div>
+                    )}
 
                     {/* Pagination Controls */}
                     {totalPages > 1 && (

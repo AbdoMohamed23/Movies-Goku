@@ -1,14 +1,24 @@
-import React from 'react'
-import { Link } from 'react-router-dom'
-import { FaPlay, FaStar } from 'react-icons/fa';
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { FaPlay, FaStar, FaHeart, FaRegHeart } from 'react-icons/fa';
+import { isFavorite, toggleFavorite } from '../utils/favorites';
 
 const Card = ({ movies }) => {
+  const [, setFavTick] = useState(0);
+
+  useEffect(() => {
+    const handleFavUpdate = () => setFavTick((t) => t + 1);
+    window.addEventListener('apex_favorites_updated', handleFavUpdate);
+    return () => window.removeEventListener('apex_favorites_updated', handleFavUpdate);
+  }, []);
+
   return (
     <>
       {movies && movies.map((item) => {
         const title = item.title || item.name || 'Untitled';
         const date = item.release_date || item.first_air_date;
         const isTv = item.media_type === 'tv' || Boolean(item.first_air_date && !item.release_date) || Boolean(item.name && !item.title);
+        const fav = isFavorite(item.id);
         
         const posterUrl = item.poster_path
           ? `https://image.tmdb.org/t/p/w500/${item.poster_path}`
@@ -34,12 +44,34 @@ const Card = ({ movies }) => {
                   <FaPlay className="ml-0.5 text-xs sm:text-base" />
                 </div>
               </div>
-              {isTv && (
-                <div className="absolute top-1.5 left-1.5 bg-blue-600/90 text-[9px] font-bold text-white px-1.5 py-0.5 rounded shadow">
-                  TV
-                </div>
-              )}
-              <div className="absolute top-1.5 right-1.5 bg-black/70 backdrop-blur-sm px-1.5 py-0.5 rounded-md text-[10px] sm:text-[11px] font-semibold text-yellow-400 flex items-center gap-1">
+              
+              {/* Badges */}
+              <div className="absolute top-1.5 left-1.5 flex items-center gap-1 z-10">
+                {isTv && (
+                  <div className="bg-blue-600/90 text-[9px] font-bold text-white px-1.5 py-0.5 rounded shadow">
+                    TV
+                  </div>
+                )}
+                {/* Heart / Favorite Button */}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggleFavorite(item);
+                  }}
+                  title={fav ? "Remove from favorites" : "Add to favorites"}
+                  className={`p-1.5 rounded-full backdrop-blur-md transition-all duration-200 ${
+                    fav
+                      ? 'bg-red-600/90 text-white shadow-md shadow-red-600/40 scale-110'
+                      : 'bg-black/60 text-gray-300 hover:text-red-400 hover:bg-black/80 hover:scale-110'
+                  }`}
+                >
+                  {fav ? <FaHeart className="text-[11px] sm:text-xs" /> : <FaRegHeart className="text-[11px] sm:text-xs" />}
+                </button>
+              </div>
+
+              <div className="absolute top-1.5 right-1.5 bg-black/70 backdrop-blur-sm px-1.5 py-0.5 rounded-md text-[10px] sm:text-[11px] font-semibold text-yellow-400 flex items-center gap-1 z-10">
                 <FaStar className="text-[9px] sm:text-[10px]" />
                 {item.vote_average ? item.vote_average.toFixed(1) : 'N/A'}
               </div>
@@ -60,4 +92,4 @@ const Card = ({ movies }) => {
   );
 };
 
-export default Card
+export default Card;
