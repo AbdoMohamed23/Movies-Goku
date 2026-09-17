@@ -16,55 +16,43 @@ import {
 
 const API_KEY = '52ef927bbeb21980cd91386a29403c78';
 
-// قائمة السيرفرات المتوافقة مع أسماء مصادر المشاهدة
+// قائمة السيرفرات النشطة والمختبرة بنجاح
 const SERVERS = [
   { 
     id: 'vidlink', 
-    name: 'Server 1 (VidLink HD)', 
+    name: 'VidLink HD', 
     movieUrl: (id) => `https://vidlink.pro/movie/${id}?autoplay=false&primaryColor=ea580c`,
     tvUrl: (id, s, e) => `https://vidlink.pro/tv/${id}/${s}/${e}?autoplay=false&primaryColor=ea580c`
   },
   { 
-    id: 'filemoon', 
-    name: 'Filemoon', 
-    movieUrl: (id) => `https://vidsrc.cc/v2/embed/movie/${id}`,
-    tvUrl: (id, s, e) => `https://vidsrc.cc/v2/embed/tv/${id}/${s}/${e}`
+    id: 'vidsrc_me', 
+    name: 'Filemoon (VidSrc Me)', 
+    movieUrl: (id) => `https://vidsrc.me/embed/movie?tmdb=${id}`,
+    tvUrl: (id, s, e) => `https://vidsrc.me/embed/tv?tmdb=${id}&sea=${s}&epi=${e}`
   },
   { 
-    id: 'upnshare', 
-    name: 'Upnshare', 
-    movieUrl: (id) => `https://player.smashy.stream/movie/${id}`,
-    tvUrl: (id, s, e) => `https://player.smashy.stream/tv/${id}?s=${s}&e=${e}`
+    id: 'vidsrc_to', 
+    name: 'Upnshare (VidSrc To)', 
+    movieUrl: (id) => `https://vidsrc.to/embed/movie/${id}`,
+    tvUrl: (id, s, e) => `https://vidsrc.to/embed/tv/${id}/${s}/${e}`
   },
   { 
-    id: 'forafile', 
-    name: 'Forafile', 
-    movieUrl: (id) => `https://vidsrc.xyz/embed/movie/${id}`,
-    tvUrl: (id, s, e) => `https://vidsrc.xyz/embed/tv/${id}/${s}/${e}`
+    id: 'autoembed', 
+    name: 'Forafile (AutoEmbed)', 
+    movieUrl: (id) => `https://autoembed.co/movie/tmdb/${id}`,
+    tvUrl: (id, s, e) => `https://autoembed.co/tv/tmdb/${id}/${s}/${e}`
   },
   { 
-    id: 'uqload', 
-    name: 'Uqload', 
-    movieUrl: (id) => `https://vidsrc.rip/embed/movie/${id}`,
-    tvUrl: (id, s, e) => `https://vidsrc.rip/embed/tv/${id}/${s}/${e}`
+    id: 'multiembed', 
+    name: 'Uqload (MultiEmbed)', 
+    movieUrl: (id) => `https://multiembed.mov/?video_id=${id}&tmdb=1`,
+    tvUrl: (id, s, e) => `https://multiembed.mov/?video_id=${id}&tmdb=1&s=${s}&e=${e}`
   },
   { 
-    id: 'vk', 
-    name: 'VK', 
-    movieUrl: (id) => `https://vidsrc.in/embed/movie/${id}`,
-    tvUrl: (id, s, e) => `https://vidsrc.in/embed/tv/${id}/${s}/${e}`
-  },
-  { 
-    id: 'ok', 
-    name: 'OK', 
-    movieUrl: (id) => `https://vidsrc.pm/embed/movie/${id}`,
-    tvUrl: (id, s, e) => `https://vidsrc.pm/embed/tv/${id}/${s}/${e}`
-  },
-  { 
-    id: 'savefiles', 
-    name: 'Save Files', 
-    movieUrl: (id) => `https://www.2embed.skin/embed/movie/${id}`,
-    tvUrl: (id, s, e) => `https://www.2embed.skin/embed/tv/${id}/${s}/${e}`
+    id: 'twoembed', 
+    name: 'Save Files (2Embed)', 
+    movieUrl: (id) => `https://www.2embed.cc/embed/${id}`,
+    tvUrl: (id, s, e) => `https://www.2embed.cc/embedtv/${id}&s=${s}&e=${e}`
   },
 ];
 
