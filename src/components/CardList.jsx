@@ -21,7 +21,8 @@ import {
     FaCompass,
     FaHistory,
     FaPlay,
-    FaTimes
+    FaTimes,
+    FaClock
 } from "react-icons/fa";
 import { getFavorites } from "../utils/favorites";
 import { getWatchHistory, removeWatchHistoryItem } from "../utils/history";
@@ -451,12 +452,29 @@ const CardList = () => {
                                                     </div>
                                                 </div>
 
-                                                <div className="p-2 space-y-1">
+                                                <div className="p-2 space-y-1.5">
                                                     <h3 className="text-white text-xs font-semibold truncate group-hover:text-orange-400 transition-colors">
                                                         {title}
                                                     </h3>
                                                     <div className="w-full bg-gray-800 h-1 rounded-full overflow-hidden">
-                                                        <div className="bg-gradient-to-r from-orange-500 to-amber-500 h-full w-2/3 rounded-full"></div>
+                                                        <div className="bg-gradient-to-r from-orange-500 to-amber-500 h-full w-3/4 rounded-full"></div>
+                                                    </div>
+                                                    <div className="flex items-center justify-between text-[10px] text-gray-400 font-mono pt-0.5">
+                                                        {item.lastWatchedTime ? (
+                                                            <span className="flex items-center gap-1 text-amber-400 font-bold">
+                                                                <FaClock className="text-[9px] text-amber-400" />
+                                                                <span>{item.lastWatchedTime}</span>
+                                                            </span>
+                                                        ) : (
+                                                            <span className="text-gray-500 text-[9px]">
+                                                                {isTv ? `S${item.season} E${item.episode}` : 'Movie'}
+                                                            </span>
+                                                        )}
+                                                        {item.lastWatchedTime && (
+                                                            <span className="text-gray-400 text-[9px] font-sans">
+                                                                {isTv ? `S${item.season} E${item.episode}` : 'Movie'}
+                                                            </span>
+                                                        )}
                                                     </div>
                                                 </div>
                                             </Link>
