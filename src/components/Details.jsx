@@ -687,18 +687,15 @@ const Details = () => {
                   </span>
                   <div>
                     {savedTimestamp ? (
-                      <>
-                        <span>آخر توقف مسجل: </span>
+                      <div className="flex items-center gap-2">
+                        <span>آخر توقف مسجل:</span>
                         <strong className="text-white font-mono text-xs sm:text-sm bg-amber-600/30 px-2 py-0.5 rounded-lg border border-amber-500/40 inline-block shadow-sm">
                           {savedTimestamp}
                         </strong>
-                        <span className="text-gray-400 text-[11px] block sm:inline sm:mr-2 mt-0.5 sm:mt-0">
-                          (اسحب شريط المشغل إلى هذا الوقت للاستكمال)
-                        </span>
-                      </>
+                      </div>
                     ) : (
                       <span className="text-gray-300 text-xs">
-                        يمكنك تحديد وقت التوقف لتتذكره في أي وقت عند العودة.
+                        تحديد وقت التوقف للمشاهدة لاحقاً
                       </span>
                     )}
                   </div>
@@ -946,10 +943,6 @@ const Details = () => {
               </button>
             </div>
 
-            <p className="text-xs text-gray-300 leading-relaxed">
-              اكتب التوقيت الذي توقفت عنده (مثال: <span className="text-amber-400 font-mono font-bold">1:45:20</span> أو <span className="text-amber-400 font-mono font-bold">45:00</span>):
-            </p>
-
             {/* Manual Input Form */}
             <div className="flex gap-2">
               <input
@@ -971,8 +964,7 @@ const Details = () => {
             </div>
 
             {/* Quick Time Presets */}
-            <div className="space-y-2 pt-2 border-t border-gray-800">
-              <span className="text-xs text-gray-400 block font-medium">أوقات شائعة سريعة:</span>
+            <div className="pt-2 border-t border-gray-800">
               <div className="grid grid-cols-4 gap-2">
                 {['15:00', '30:00', '45:00', '1:00:00', '1:15:00', '1:30:00', '1:45:20', '2:00:00'].map((t) => (
                   <button
