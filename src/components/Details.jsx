@@ -8,15 +8,13 @@ import {
   FaClock, 
   FaCalendarAlt, 
   FaServer, 
-  FaRedoAlt, 
   FaUsers, 
   FaTv,
   FaLayerGroup,
   FaHeart,
   FaRegHeart,
   FaExpand,
-  FaCompress,
-  FaVolumeUp
+  FaCompress
 } from 'react-icons/fa';
 import { isFavorite, toggleFavorite } from '../utils/favorites';
 import { saveWatchHistoryItem } from '../utils/history';
@@ -89,14 +87,6 @@ const Details = () => {
   const [loading, setLoading] = useState(true);
   const [favStatus, setFavStatus] = useState(() => isFavorite(id));
   const [theaterMode, setTheaterMode] = useState(false);
-  const [volumeLevel, setVolumeLevel] = useState(() => {
-    try {
-      return Number(localStorage.getItem('apex_volume_boost')) || 100;
-    } catch (e) {
-      return 100;
-    }
-  });
-  const [showVolumePopup, setShowVolumePopup] = useState(false);
   const videoDisplayRef = useRef(null);
 
   // Sync favorite status
@@ -153,15 +143,6 @@ const Details = () => {
       } catch (e) {}
       setTheaterMode(false);
     }
-  };
-
-  // Change Volume Boost Level
-  const handleVolumeBoost = (newVol) => {
-    const clamped = Math.max(50, Math.min(400, newVol));
-    setVolumeLevel(clamped);
-    try {
-      localStorage.setItem('apex_volume_boost', String(clamped));
-    } catch (e) {}
   };
 
   const handleToggleFav = () => {
@@ -406,10 +387,6 @@ const Details = () => {
     }
   }, [isTv, id, selectedSeason]);
 
-  const handleReloadPlayer = () => {
-    setPlayerKey((prev) => prev + 1);
-  };
-
   const handleFranchisePartChange = (targetMovieId) => {
     if (targetMovieId && targetMovieId !== id) {
       navigate(`/details/${targetMovieId}`);
@@ -513,7 +490,7 @@ const Details = () => {
                 </button>
               </div>
 
-              {/* Right Player Actions: Cinema Mode + Sound Booster + Reload */}
+              {/* Right Player Actions: Cinema Mode */}
               <div className="flex items-center gap-2">
                 {/* Cinema Mode Toggle (Targets ONLY the video screen) */}
                 <button
@@ -528,96 +505,6 @@ const Details = () => {
                   {theaterMode ? <FaCompress className="text-xs" /> : <FaExpand className="text-xs" />}
                   <span>{theaterMode ? 'Exit Cinema' : 'Cinema Mode'}</span>
                 </button>
-
-                {/* Interactive Sound Booster Controller */}
-                <div className="relative">
-                  <button
-                    onClick={() => setShowVolumePopup(!showVolumePopup)}
-                    title="Boost & Control Sound Volume"
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors duration-150 border cursor-pointer ${
-                      volumeLevel > 100
-                        ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white border-emerald-400/50 shadow-md shadow-emerald-600/30 ring-1 ring-emerald-400/60'
-                        : 'bg-gray-800/80 hover:bg-gray-700 text-gray-300 hover:text-white border-gray-700/60'
-                    }`}
-                  >
-                    <FaVolumeUp className="text-xs text-emerald-400" />
-                    <span>{volumeLevel}% Sound</span>
-                  </button>
-
-                  {/* Volume Booster Popover */}
-                  {showVolumePopup && (
-                    <div className="absolute right-0 top-full mt-2 w-72 bg-[#121520] border border-emerald-500/40 rounded-2xl shadow-2xl p-4 z-40 space-y-3 backdrop-blur-md">
-                      <div className="flex items-center justify-between border-b border-gray-800 pb-2">
-                        <div className="flex items-center gap-2 text-emerald-400 font-bold text-xs">
-                          <FaVolumeUp />
-                          <span>Sound Volume Booster</span>
-                        </div>
-                        <span className="text-emerald-400 font-black text-xs bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/30">
-                          {volumeLevel}%
-                        </span>
-                      </div>
-
-                      {/* Slider */}
-                      <div className="space-y-1">
-                        <div className="flex justify-between text-[10px] text-gray-400">
-                          <span>50%</span>
-                          <span>100% (Normal)</span>
-                          <span className="text-emerald-400 font-bold">400% (Max)</span>
-                        </div>
-                        <input
-                          type="range"
-                          min="50"
-                          max="400"
-                          step="10"
-                          value={volumeLevel}
-                          onChange={(e) => handleVolumeBoost(Number(e.target.value))}
-                          className="w-full h-2 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-emerald-500"
-                        />
-                      </div>
-
-                      {/* Quick Presets */}
-                      <div className="grid grid-cols-4 gap-1.5 pt-1">
-                        {[100, 150, 200, 300].map((v) => (
-                          <button
-                            key={v}
-                            onClick={() => handleVolumeBoost(v)}
-                            className={`py-1 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
-                              volumeLevel === v
-                                ? 'bg-emerald-600 text-white shadow-sm'
-                                : 'bg-[#181c28] text-gray-300 hover:bg-gray-700 hover:text-white border border-gray-800'
-                            }`}
-                          >
-                            {v}%
-                          </button>
-                        ))}
-                      </div>
-
-                      {/* Max Boost Button */}
-                      <button
-                        onClick={() => handleVolumeBoost(400)}
-                        className={`w-full py-1.5 rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer ${
-                          volumeLevel === 400
-                            ? 'bg-gradient-to-r from-red-600 to-orange-600 text-white ring-1 ring-red-400'
-                            : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-emerald-600/20'
-                        }`}
-                      >
-                        🚀 Ultra Boost (400%)
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                {/* Player Reload Action */}
-                {activeTab === 'stream' && (
-                  <button
-                    onClick={handleReloadPlayer}
-                    title="Reload Player Stream"
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white rounded-xl text-xs font-medium transition-colors border border-gray-700/50"
-                  >
-                    <FaRedoAlt className="text-[11px]" />
-                    <span className="hidden sm:inline">Reload</span>
-                  </button>
-                )}
               </div>
             </div>
 
