@@ -97,7 +97,6 @@ const Details = () => {
   const [savedTimestamp, setSavedTimestamp] = useState('');
   const [showTimeModal, setShowTimeModal] = useState(false);
   const [customTimeInput, setCustomTimeInput] = useState('');
-  const [savedSuccessMsg, setSavedSuccessMsg] = useState(false);
   const videoDisplayRef = useRef(null);
 
   // Sync saved timestamp when movie or season/episode changes
@@ -129,18 +128,14 @@ const Details = () => {
     return () => window.removeEventListener('message', handleMessage);
   }, [id, isTv, selectedSeason, selectedEpisode]);
 
-  // Manual timestamp bookmark handler
+  // Manual timestamp bookmark handler - closes modal immediately upon save
   const handleSaveCustomTimestamp = (presetTime) => {
     const timeToSave = (presetTime || customTimeInput || '').trim();
     if (!timeToSave) return;
     saveSavedTimestamp(id, isTv ? selectedSeason : 1, isTv ? selectedEpisode : 1, timeToSave);
     setSavedTimestamp(timeToSave);
     setCustomTimeInput(timeToSave);
-    setSavedSuccessMsg(true);
-    setTimeout(() => {
-      setSavedSuccessMsg(false);
-      setShowTimeModal(false);
-    }, 1000);
+    setShowTimeModal(false);
   };
 
   // Sync favorite status
@@ -974,12 +969,6 @@ const Details = () => {
                 <span>حفظ</span>
               </button>
             </div>
-
-            {savedSuccessMsg && (
-              <div className="p-2 bg-emerald-600/20 border border-emerald-500/40 rounded-xl text-emerald-400 text-xs text-center font-bold animate-pulse">
-                ✅ تم حفظ وقت التوقف بنجاح!
-              </div>
-            )}
 
             {/* Quick Time Presets */}
             <div className="space-y-2 pt-2 border-t border-gray-800">
