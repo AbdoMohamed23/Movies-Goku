@@ -15,7 +15,6 @@ import {
   FaRegHeart,
   FaExpand,
   FaCompress,
-  FaBookmark,
   FaCheck,
   FaTimes
 } from 'react-icons/fa';
@@ -545,86 +544,8 @@ const Details = () => {
                 </button>
               </div>
 
-              {/* Right Player Actions: Bookmark Time + Cinema Mode */}
+              {/* Right Player Actions: Cinema Mode */}
               <div className="flex items-center gap-2">
-                {/* Save / Bookmark Timestamp Button */}
-                <div className="relative">
-                  <button
-                    onClick={() => setShowTimeModal(!showTimeModal)}
-                    title="تحديد أو حفظ وقت التوقف للمشاهدة لاحقاً"
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-150 border cursor-pointer bg-gradient-to-r from-amber-600/20 to-orange-600/20 hover:from-amber-600/40 hover:to-orange-600/40 text-amber-300 hover:text-white border-amber-500/40 shadow-sm"
-                  >
-                    <FaBookmark className="text-xs text-amber-400" />
-                    <span>{savedTimestamp ? `⏱️ ${savedTimestamp}` : 'وقت التوقف'}</span>
-                  </button>
-
-                  {/* Time Bookmark Popover Modal */}
-                  {showTimeModal && (
-                    <div className="absolute right-0 top-full mt-2 w-72 max-w-[calc(100vw-2.5rem)] bg-[#121520] border border-amber-500/40 rounded-2xl shadow-2xl p-4 z-50 space-y-3 backdrop-blur-md">
-                      <div className="flex items-center justify-between border-b border-gray-800 pb-2">
-                        <div className="flex items-center gap-2 text-amber-400 font-bold text-xs">
-                          <FaClock />
-                          <span>تحديد وقت التوقف للمتابعة</span>
-                        </div>
-                        <button
-                          onClick={() => setShowTimeModal(false)}
-                          className="text-gray-400 hover:text-white text-xs cursor-pointer p-1"
-                        >
-                          <FaTimes />
-                        </button>
-                      </div>
-
-                      <p className="text-[11px] text-gray-300 leading-tight">
-                        اكتب التوقيت الذي توقفت عنده لتتذكره دائماً (مثال: <span className="text-amber-400 font-mono">1:45:20</span> أو <span className="text-amber-400 font-mono">45:00</span>):
-                      </p>
-
-                      {/* Manual Input Form */}
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          placeholder="1:45:20 أو 45:00"
-                          value={customTimeInput}
-                          onChange={(e) => setCustomTimeInput(e.target.value)}
-                          onKeyDown={(e) => e.key === 'Enter' && handleSaveCustomTimestamp()}
-                          className="flex-1 bg-gray-900 border border-gray-700 focus:border-amber-500 rounded-xl px-3 py-1.5 text-xs text-white font-mono text-center outline-none"
-                        />
-                        <button
-                          onClick={() => handleSaveCustomTimestamp()}
-                          className="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl text-xs transition-colors cursor-pointer flex items-center gap-1 shadow-md shadow-amber-600/30"
-                        >
-                          <FaCheck className="text-[10px]" />
-                          <span>حفظ</span>
-                        </button>
-                      </div>
-
-                      {savedSuccessMsg && (
-                        <div className="p-1.5 bg-emerald-600/20 border border-emerald-500/40 rounded-lg text-emerald-400 text-[11px] text-center font-bold animate-pulse">
-                          ✅ تم حفظ وقت التوقف بنجاح!
-                        </div>
-                      )}
-
-                      {/* Quick Time Presets */}
-                      <div className="space-y-1.5 pt-1 border-t border-gray-800/80">
-                        <span className="text-[10px] text-gray-400 block font-medium">أوقات سريعة شائعة:</span>
-                        <div className="grid grid-cols-4 gap-1.5">
-                          {['15:00', '30:00', '45:00', '1:00:00', '1:15:00', '1:30:00', '1:45:20', '2:00:00'].map((t) => (
-                            <button
-                              key={t}
-                              onClick={() => {
-                                setCustomTimeInput(t);
-                                handleSaveCustomTimestamp(t);
-                              }}
-                              className="py-1 bg-[#181c28] hover:bg-amber-600 text-gray-300 hover:text-white rounded-lg text-[10px] font-mono transition-colors border border-gray-800 cursor-pointer"
-                            >
-                              {t}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
                 {/* Cinema Mode Toggle (Targets ONLY the video screen) */}
                 <button
                   onClick={toggleCinemaMode}
@@ -762,28 +683,36 @@ const Details = () => {
               </div>
             )}
 
-            {/* Saved Timestamp Reminder Banner */}
-            {savedTimestamp && activeTab === 'stream' && (
-              <div className="mb-3.5 px-3.5 sm:px-4 py-2.5 sm:py-3 bg-gradient-to-r from-amber-950/50 via-[#151924] to-[#121520] border border-amber-500/40 rounded-2xl flex flex-wrap items-center justify-between gap-2.5 text-xs shadow-lg backdrop-blur-sm">
+            {/* Saved Timestamp Reminder Banner (Above Player) */}
+            {activeTab === 'stream' && (
+              <div className="mb-3.5 px-3.5 sm:px-4 py-2.5 sm:py-3 bg-gradient-to-r from-amber-950/40 via-[#151924] to-[#121520] border border-amber-500/40 rounded-2xl flex flex-wrap items-center justify-between gap-2.5 text-xs shadow-lg backdrop-blur-sm">
                 <div className="flex items-center gap-2.5 text-amber-300 font-medium">
                   <span className="flex items-center justify-center w-7 h-7 rounded-xl bg-amber-500/20 border border-amber-500/30 text-amber-400 font-bold text-sm shadow-inner">
                     ⏱️
                   </span>
                   <div>
-                    <span>آخر توقف مسجل: </span>
-                    <strong className="text-white font-mono text-xs sm:text-sm bg-amber-600/30 px-2 py-0.5 rounded-lg border border-amber-500/40 inline-block shadow-sm">
-                      {savedTimestamp}
-                    </strong>
-                    <span className="text-gray-400 text-[11px] block sm:inline sm:mr-2 mt-0.5 sm:mt-0">
-                      (اسحب شريط المشغل إلى هذا الوقت للاستكمال من حيث توقفت)
-                    </span>
+                    {savedTimestamp ? (
+                      <>
+                        <span>آخر توقف مسجل: </span>
+                        <strong className="text-white font-mono text-xs sm:text-sm bg-amber-600/30 px-2 py-0.5 rounded-lg border border-amber-500/40 inline-block shadow-sm">
+                          {savedTimestamp}
+                        </strong>
+                        <span className="text-gray-400 text-[11px] block sm:inline sm:mr-2 mt-0.5 sm:mt-0">
+                          (اسحب شريط المشغل إلى هذا الوقت للاستكمال)
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-gray-300 text-xs">
+                        يمكنك تحديد وقت التوقف لتتذكره في أي وقت عند العودة.
+                      </span>
+                    )}
                   </div>
                 </div>
                 <button
                   onClick={() => setShowTimeModal(true)}
-                  className="px-3 py-1.5 rounded-xl bg-amber-600/20 hover:bg-amber-600 text-amber-300 hover:text-white border border-amber-500/30 text-[11px] font-semibold transition-all cursor-pointer whitespace-nowrap shadow-sm"
+                  className="px-3.5 py-1.5 rounded-xl bg-amber-600/30 hover:bg-amber-600 text-amber-300 hover:text-white border border-amber-500/40 text-xs font-semibold transition-all cursor-pointer whitespace-nowrap shadow-sm"
                 >
-                  ✏️ تعديل الوقت
+                  {savedTimestamp ? 'تعديل الوقت' : 'تحديد وقت التوقف'}
                 </button>
               </div>
             )}
@@ -999,6 +928,80 @@ const Details = () => {
           )}
         </div>
       </div>
+
+      {/* Centered Modal Backdrop for Setting Timestamp */}
+      {showTimeModal && (
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowTimeModal(false);
+          }}
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in"
+        >
+          <div className="relative w-full max-w-sm bg-[#131622] border border-amber-500/40 rounded-3xl shadow-2xl p-5 space-y-4 text-white">
+            <div className="flex items-center justify-between border-b border-gray-800 pb-3">
+              <div className="flex items-center gap-2 text-amber-400 font-bold text-sm">
+                <FaClock className="text-base" />
+                <span>تحديد وقت التوقف للمتابعة</span>
+              </div>
+              <button
+                onClick={() => setShowTimeModal(false)}
+                className="w-7 h-7 rounded-full bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white flex items-center justify-center text-xs transition-colors cursor-pointer"
+              >
+                <FaTimes />
+              </button>
+            </div>
+
+            <p className="text-xs text-gray-300 leading-relaxed">
+              اكتب التوقيت الذي توقفت عنده (مثال: <span className="text-amber-400 font-mono font-bold">1:45:20</span> أو <span className="text-amber-400 font-mono font-bold">45:00</span>):
+            </p>
+
+            {/* Manual Input Form */}
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="1:45:20 أو 45:00"
+                value={customTimeInput}
+                onChange={(e) => setCustomTimeInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSaveCustomTimestamp()}
+                className="flex-1 bg-gray-900 border border-gray-700 focus:border-amber-500 rounded-xl px-3 py-2 text-sm text-white font-mono text-center outline-none"
+                autoFocus
+              />
+              <button
+                onClick={() => handleSaveCustomTimestamp()}
+                className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl text-xs transition-colors cursor-pointer flex items-center gap-1.5 shadow-md shadow-amber-600/30"
+              >
+                <FaCheck className="text-xs" />
+                <span>حفظ</span>
+              </button>
+            </div>
+
+            {savedSuccessMsg && (
+              <div className="p-2 bg-emerald-600/20 border border-emerald-500/40 rounded-xl text-emerald-400 text-xs text-center font-bold animate-pulse">
+                ✅ تم حفظ وقت التوقف بنجاح!
+              </div>
+            )}
+
+            {/* Quick Time Presets */}
+            <div className="space-y-2 pt-2 border-t border-gray-800">
+              <span className="text-xs text-gray-400 block font-medium">أوقات شائعة سريعة:</span>
+              <div className="grid grid-cols-4 gap-2">
+                {['15:00', '30:00', '45:00', '1:00:00', '1:15:00', '1:30:00', '1:45:20', '2:00:00'].map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => {
+                      setCustomTimeInput(t);
+                      handleSaveCustomTimestamp(t);
+                    }}
+                    className="py-1.5 bg-[#1a1e2d] hover:bg-amber-600 text-gray-300 hover:text-white rounded-xl text-xs font-mono transition-colors border border-gray-800 cursor-pointer text-center"
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
