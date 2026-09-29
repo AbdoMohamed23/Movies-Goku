@@ -701,71 +701,14 @@ const Details = () => {
               </div>
             )}
 
-            {/* 3. Server Selector Bar matching Seasons & Episodes layout */}
-            {activeTab === 'stream' && (
-              <div className="mb-4 p-3 sm:p-4 bg-[#0f121a] rounded-2xl border border-orange-500/30 flex flex-col sm:flex-row sm:items-center gap-3 shadow-lg">
-                <div className="flex items-center gap-2 text-xs sm:text-sm text-orange-400 font-bold flex-shrink-0">
-                  <FaServer className="text-base text-orange-400" />
-                  <span>Streaming Server:</span>
-                </div>
-                <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 custom-scrollbar flex-1">
-                  {SERVERS.map((server) => {
-                    const isCurrentServer = selectedServer === server.id;
-                    return (
-                      <button
-                        key={server.id}
-                        onClick={() => handleServerChange(server.id)}
-                        className={`px-5 sm:px-6 py-1.5 sm:py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
-                          isCurrentServer
-                            ? 'bg-gradient-to-r from-orange-600 to-amber-600 text-white font-bold shadow-md shadow-orange-600/30 ring-1 ring-orange-400/50'
-                            : 'bg-[#181b24] text-gray-300 hover:bg-gray-800 hover:text-white border border-gray-700/60'
-                        }`}
-                      >
-                        {server.name}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* Saved Timestamp Reminder Banner (Above Player) */}
-            {activeTab === 'stream' && (
-              <div className="mb-3.5 px-3.5 sm:px-4 py-2.5 sm:py-3 bg-gradient-to-r from-amber-950/40 via-[#151924] to-[#121520] border border-amber-500/40 rounded-2xl flex flex-wrap items-center justify-between gap-2.5 text-xs shadow-lg backdrop-blur-sm">
-                <div className="flex items-center gap-2.5 text-amber-300 font-medium">
-                  <span className="flex items-center justify-center w-7 h-7 rounded-xl bg-amber-500/20 border border-amber-500/30 text-amber-400 font-bold text-sm shadow-inner">
-                    ⏱️
-                  </span>
-                  <div>
-                    {savedTimestamp ? (
-                      <div className="flex items-center gap-2">
-                        <span>آخر توقف مسجل:</span>
-                        <strong className="text-white font-mono text-xs sm:text-sm bg-amber-600/30 px-2 py-0.5 rounded-lg border border-amber-500/40 inline-block shadow-sm">
-                          {savedTimestamp}
-                        </strong>
-                      </div>
-                    ) : (
-                      <span className="text-gray-300 text-xs">
-                        تحديد وقت التوقف للمشاهدة لاحقاً
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <button
-                  onClick={() => setShowTimeModal(true)}
-                  className="px-3.5 py-1.5 rounded-xl bg-amber-600/30 hover:bg-amber-600 text-amber-300 hover:text-white border border-amber-500/40 text-xs font-semibold transition-all cursor-pointer whitespace-nowrap shadow-sm"
-                >
-                  {savedTimestamp ? 'تعديل الوقت' : 'تحديد وقت التوقف'}
-                </button>
-              </div>
-            )}
-
             {/* Video Player Display (Cinema Mode targets only this frame) */}
             <div
               ref={videoDisplayRef}
               className={`relative w-full aspect-video md:aspect-[21/9] lg:aspect-[16/9] ${
                 theaterMode ? 'min-h-[60vh] sm:min-h-[85vh] max-h-[96vh] shadow-[0_0_60px_rgba(234,88,12,0.35)]' : 'max-h-[620px]'
-              } rounded-xl overflow-hidden bg-black shadow-2xl border border-gray-800/90 transition-all duration-300`}
+              } rounded-xl overflow-hidden bg-black shadow-2xl border border-gray-800/90 transition-all duration-300 ${
+                activeTab === 'stream' ? 'mb-4' : ''
+              }`}
             >
               {activeTab === 'stream' && (
                 <iframe
@@ -796,6 +739,65 @@ const Details = () => {
                 )
               )}
             </div>
+
+            {/* Saved Timestamp Reminder Banner (Below Video Player) */}
+            {activeTab === 'stream' && (
+              <div className="mb-4 px-3.5 sm:px-4 py-2.5 sm:py-3 bg-gradient-to-r from-amber-950/40 via-[#151924] to-[#121520] border border-amber-500/40 rounded-2xl flex flex-wrap items-center justify-between gap-2.5 text-xs shadow-lg backdrop-blur-sm">
+                <div className="flex items-center gap-2.5 text-amber-300 font-medium">
+                  <span className="flex items-center justify-center w-7 h-7 rounded-xl bg-amber-500/20 border border-amber-500/30 text-amber-400 font-bold text-sm shadow-inner">
+                    ⏱️
+                  </span>
+                  <div>
+                    {savedTimestamp ? (
+                      <div className="flex items-center gap-2">
+                        <span>آخر توقف مسجل:</span>
+                        <strong className="text-white font-mono text-xs sm:text-sm bg-amber-600/30 px-2 py-0.5 rounded-lg border border-amber-500/40 inline-block shadow-sm">
+                          {savedTimestamp}
+                        </strong>
+                      </div>
+                    ) : (
+                      <span className="text-gray-300 text-xs">
+                        تحديد وقت التوقف للمشاهدة لاحقاً
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowTimeModal(true)}
+                  className="px-3.5 py-1.5 rounded-xl bg-amber-600/30 hover:bg-amber-600 text-amber-300 hover:text-white border border-amber-500/40 text-xs font-semibold transition-all cursor-pointer whitespace-nowrap shadow-sm"
+                >
+                  {savedTimestamp ? 'تعديل الوقت' : 'تحديد وقت التوقف'}
+                </button>
+              </div>
+            )}
+
+            {/* Streaming Server Selector Bar (Below Saved Timestamp) */}
+            {activeTab === 'stream' && (
+              <div className="p-3 sm:p-4 bg-[#0f121a] rounded-2xl border border-orange-500/30 flex flex-col sm:flex-row sm:items-center gap-3 shadow-lg">
+                <div className="flex items-center gap-2 text-xs sm:text-sm text-orange-400 font-bold flex-shrink-0">
+                  <FaServer className="text-base text-orange-400" />
+                  <span>Streaming Server:</span>
+                </div>
+                <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 custom-scrollbar flex-1">
+                  {SERVERS.map((server) => {
+                    const isCurrentServer = selectedServer === server.id;
+                    return (
+                      <button
+                        key={server.id}
+                        onClick={() => handleServerChange(server.id)}
+                        className={`px-5 sm:px-6 py-1.5 sm:py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+                          isCurrentServer
+                            ? 'bg-gradient-to-r from-orange-600 to-amber-600 text-white font-bold shadow-md shadow-orange-600/30 ring-1 ring-orange-400/50'
+                            : 'bg-[#181b24] text-gray-300 hover:bg-gray-800 hover:text-white border border-gray-700/60'
+                        }`}
+                      >
+                        {server.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Details Info Card */}
