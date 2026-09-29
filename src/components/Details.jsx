@@ -98,6 +98,43 @@ const Details = () => {
   const [showTimeModal, setShowTimeModal] = useState(false);
   const [customTimeInput, setCustomTimeInput] = useState('');
   const videoDisplayRef = useRef(null);
+  const seasonsContainerRef = useRef(null);
+  const selectedSeasonRef = useRef(null);
+  const episodesContainerRef = useRef(null);
+  const selectedEpisodeRef = useRef(null);
+
+  // Helper to center an element inside a horizontally scrollable container
+  const centerItemInContainer = (container, element, smooth = true) => {
+    if (!container || !element) return;
+    const containerRect = container.getBoundingClientRect();
+    const elementRect = element.getBoundingClientRect();
+    const relativeLeft = elementRect.left - containerRect.left + container.scrollLeft;
+    const targetScrollLeft = relativeLeft - (containerRect.width / 2) + (elementRect.width / 2);
+    container.scrollTo({
+      left: Math.max(0, targetScrollLeft),
+      behavior: smooth ? 'smooth' : 'auto'
+    });
+  };
+
+  // Auto-scroll selected season to center
+  useEffect(() => {
+    if (seasons.length > 0 && selectedSeason) {
+      const timer = setTimeout(() => {
+        centerItemInContainer(seasonsContainerRef.current, selectedSeasonRef.current, true);
+      }, 60);
+      return () => clearTimeout(timer);
+    }
+  }, [seasons, selectedSeason]);
+
+  // Auto-scroll selected episode to center
+  useEffect(() => {
+    if (episodes.length > 0 && selectedEpisode) {
+      const timer = setTimeout(() => {
+        centerItemInContainer(episodesContainerRef.current, selectedEpisodeRef.current, true);
+      }, 60);
+      return () => clearTimeout(timer);
+    }
+  }, [episodes, selectedEpisode]);
 
   // Sync saved timestamp when movie or season/episode changes
   useEffect(() => {
@@ -598,13 +635,20 @@ const Details = () => {
                     <FaTv className="text-base" />
                     <span>Seasons:</span>
                   </div>
-                  <div className="flex items-center gap-2.5 overflow-x-auto pb-1 sm:pb-0 custom-scrollbar flex-1">
+                  <div
+                    ref={seasonsContainerRef}
+                    className="flex items-center gap-2.5 overflow-x-auto pb-1 sm:pb-0 custom-scrollbar flex-1"
+                  >
                     {seasons.map((season) => {
                       const isCurrentSeason = selectedSeason === season.season_number;
                       return (
                         <button
                           key={season.id}
-                          onClick={() => handleSeasonChange(season.season_number)}
+                          ref={isCurrentSeason ? selectedSeasonRef : null}
+                          onClick={(e) => {
+                            handleSeasonChange(season.season_number);
+                            centerItemInContainer(seasonsContainerRef.current, e.currentTarget);
+                          }}
                           className={`px-5 sm:px-6 py-1.5 sm:py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
                             isCurrentSeason
                               ? 'bg-blue-600 text-white font-bold shadow-md shadow-blue-600/30 ring-1 ring-blue-400/50'
@@ -625,13 +669,20 @@ const Details = () => {
                       <span>Episodes in Season {selectedSeason}:</span>
                       <span className="text-blue-400 font-semibold">Playing Episode {selectedEpisode}</span>
                     </div>
-                    <div className="flex items-center gap-2 overflow-x-auto pb-1.5 custom-scrollbar">
+                    <div
+                      ref={episodesContainerRef}
+                      className="flex items-center gap-2 overflow-x-auto pb-1.5 custom-scrollbar"
+                    >
                       {episodes.map((ep) => {
                         const isCurrentEp = selectedEpisode === ep.episode_number;
                         return (
                           <button
                             key={ep.id}
-                            onClick={() => handleEpisodeChange(ep.episode_number)}
+                            ref={isCurrentEp ? selectedEpisodeRef : null}
+                            onClick={(e) => {
+                              handleEpisodeChange(ep.episode_number);
+                              centerItemInContainer(episodesContainerRef.current, e.currentTarget);
+                            }}
                             className={`flex items-center gap-1.5 px-4 sm:px-5 py-1.5 sm:py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-all ${
                               isCurrentEp
                                 ? 'bg-blue-600 text-white font-bold shadow-md shadow-blue-600/30 ring-1 ring-blue-400/50'
