@@ -530,7 +530,7 @@ const Details = () => {
         <div className="relative max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8 py-4 sm:py-6">
           
           {/* Main Video Player Container */}
-          <div className="bg-[#12141c]/90 border border-gray-800/80 backdrop-blur-md rounded-2xl shadow-2xl p-3 sm:p-6 mb-8">
+          <div className="bg-[#12141c]/90 border border-gray-800/80 backdrop-blur-md rounded-2xl shadow-2xl p-3 sm:p-6 mb-8 mt-8 sm:mt-12 md:mt-16">
             
             {/* Player Mode Switcher Tabs */}
             <div className="flex flex-wrap items-center justify-between gap-3 pb-3 mb-4 border-b border-gray-800">
